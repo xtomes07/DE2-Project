@@ -7,7 +7,6 @@
  * ATmega328P (Arduino Uno), 16 MHz, AVR 8-bit Toolchain 3.6.2
  *
  * Copyright (c) 2019-Present Tomas Fryza
- * Copyright (c) 2021 Pavlo Shelemba
  * Dept. of Radio Electronics, Brno University of Technology, Czechia
  * This work is licensed under the terms of the MIT license.
  *
@@ -26,8 +25,8 @@
  *       (Arduino Uno), 16 MHz, AVR 8-bit Toolchain 3.6.2.
  * @author Tomas Fryza, Dept. of Radio Electronics, Brno University 
  *         of Technology, Czechia
- * @copyright (c) 2019-2021 Tomas Fryza, (c) 2021 Pavlo Shelemba. This 
- *          work is licensed under the terms of the MIT license
+ * @copyright (c) 2019-2021 Tomas Fryza, This work is licensed under 
+ *                the terms of the MIT license
  * @{
  */
 
@@ -49,13 +48,9 @@
  */
 void GPIO_config_output(volatile uint8_t *reg_name, uint8_t pin_num);
 
-/**
- * @brief  Configure one input pin without pull-up.
- * @param  reg_name Address of Data Direction Register, such as &DDRB
- * @param  pin_num  Pin designation in the interval 0 to 7
- * @return none
- */
-void GPIO_config_input_nopull(volatile uint8_t *reg_name, uint8_t pin_num);
+
+void GPIO_config_input_nopull(volatile uint8_t*reg_name, uint8_t pin_num) ;
+
 
 /**
  * @brief  Configure one input pin and enable pull-up.
@@ -65,6 +60,7 @@ void GPIO_config_input_nopull(volatile uint8_t *reg_name, uint8_t pin_num);
  */
 void GPIO_config_input_pullup(volatile uint8_t *reg_name, uint8_t pin_num);
 
+
 /**
  * @brief  Write one pin to a low value.
  * @param  reg_name Address of Port Register, such as &PORTB
@@ -73,21 +69,12 @@ void GPIO_config_input_pullup(volatile uint8_t *reg_name, uint8_t pin_num);
  */
 void GPIO_write_low(volatile uint8_t *reg_name, uint8_t pin_num);
 
-/**
- * @brief  Write one pin to a high value.
- * @param  reg_name Address of Port Register, such as &PORTB
- * @param  pin_num  Pin designation in the interval 0 to 7
- * @return none
- */
+
 void GPIO_write_high(volatile uint8_t *reg_name, uint8_t pin_num);
 
-/**
- * @brief  Toggle one pin.
- * @param  reg_name Address of Port Register, such as &PORTB
- * @param  pin_num  Pin designation in the interval 0 to 7
- * @return none
- */
+
 void GPIO_toggle(volatile uint8_t *reg_name, uint8_t pin_num);
+
 
 /**
  * @brief  Read a value from input pin.

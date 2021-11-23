@@ -8,5 +8,3 @@ lcd.c
 
 main.c
 
-Ultrasonic.c
-

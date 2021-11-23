@@ -39,8 +39,7 @@ SUBDIRS :=
 C_SRCS +=  \
 ../gpio.c \
 ../lcd.c \
-../main.c \
-../Ultrasonic.c
+../main.c
 
 
 PREPROCESSING_SRCS += 
@@ -52,26 +51,22 @@ ASM_SRCS +=
 OBJS +=  \
 gpio.o \
 lcd.o \
-main.o \
-Ultrasonic.o
+main.o
 
 OBJS_AS_ARGS +=  \
 gpio.o \
 lcd.o \
-main.o \
-Ultrasonic.o
+main.o
 
 C_DEPS +=  \
 gpio.d \
 lcd.d \
-main.d \
-Ultrasonic.d
+main.d
 
 C_DEPS_AS_ARGS +=  \
 gpio.d \
 lcd.d \
-main.d \
-Ultrasonic.d
+main.d
 
 OUTPUT_FILE_PATH +=WaterTankController.elf
 
@@ -102,13 +97,6 @@ LINKER_SCRIPT_DEP+=
 	
 
 ./main.o: .././main.c
-	@echo Building file: $<
-	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\gcc\dev\atmega328p" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
-	@echo Finished building: $<
-	
-
-./Ultrasonic.o: .././Ultrasonic.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\gcc\dev\atmega328p" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

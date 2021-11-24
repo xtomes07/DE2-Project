@@ -70,7 +70,7 @@ int main(void)
     TIM0_overflow_interrupt_enable();
 
     // 340 m/s sound wave propagates by 1 cm in ~58,8235 us
-    // Empirical measurement suggests that 905 clocks of TIM1
+    // Empirical measurement suggests that 930 clocks of TIM1
     // with prescaler N=1 takes almost the same amount of time
     // This value will probably change with growing complexity
     // of the program

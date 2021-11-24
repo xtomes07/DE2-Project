@@ -26,7 +26,7 @@
 #include <stdlib.h>         // C library. Needed for conversion function
 
 /* Variables ---------------------------------------------------------*/
-uint16_t distance = 0;
+uint16_t distance_cm = 0;
 
 /* Function definitions ----------------------------------------------*/
 /**********************************************************************
@@ -66,22 +66,24 @@ int main(void)
     EIMSK |= (1 << INT0); EIMSK &= ~(1 << INT1);
     
     // Overflow timer for trigger signal
-    TIM1_overflow_33ms();
-    TIM1_overflow_interrupt_enable();
+    TIM0_overflow_4ms();
+    TIM0_overflow_interrupt_enable();
 
+    // 340 m/s sound wave propagates by 1 cm in ~58,8235 us
+    // Empirical measurement suggests that 905 clocks of TIM1
+    // with prescaler N=1 takes almost the same amount of time
+    // This value will probably change with growing complexity
+    // of the program
+    OCR1A = 930;
+    // Enable Timer/Counter1 Output Compare A Match interrupt    
+    TIMSK1 |= (1 << OCIE1A);
+    
     // Enables interrupts by setting the global interrupt mask
     sei();
 
     // Infinite loop
     while (1)
-    {
-        // 118 clocks of TIM0 with prescaler N=8 takes 58 us (~1cm for sound wave)
-        if (TCNT0 >= 117)
-        {
-            ++distance;
-            TCNT0 = 0;
-        }
-    }
+    {}
 
     return 0;
 }
@@ -90,19 +92,17 @@ int main(void)
 ISR(INT0_vect)
 {
     // Strings for converting numbers
-    static char lcd_str[3];
+    static char lcd_str[16];
     // Change of state counter
     static uint8_t i = 0;
     
     if(i)
     {
-        // Stop counting echo
-        TIM0_stop();
-        // Reset timer
-        TCNT0 = 0;
+        // Disable counter
+        TCCR1B |= 0;
         
         // Calculate distance in centimeters and put in on LCD
-        itoa(distance, lcd_str, 10);
+        itoa(distance_cm, lcd_str, 10);
         lcd_gotoxy(8, 0);
         lcd_puts("    ");
         lcd_gotoxy(8, 0);
@@ -113,19 +113,35 @@ ISR(INT0_vect)
     else
     {
         // Clear previous calculated distance before next measurement
-        distance = 0;
+        distance_cm = 0;
         
-        // Start counting echo using 8-bit counter with prescaler N=8
-        TIM0_overflow_128us();     
+        // Start counting echo using 16-bit counter with prescaler N=1
+        TIM1_overflow_4ms();  
+        // Enable TIM1 CTC mode   
+        TCCR1B |= (1 << WGM12);
         
         i = 1;
     }
 }
 
-ISR(TIMER1_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
-    // Trigger the ultrasonic sensor
-    GPIO_write_high(&PORTD, trig);
-    _delay_us(10);
-    GPIO_write_low(&PORTD, trig);
+    static uint8_t i = 0;
+    
+    ++i;
+    
+    // Trigger the ultrasonic sensor every ~40 ms
+    if (i == 9)
+    {  
+        GPIO_write_high(&PORTD, trig);
+        _delay_us(10);
+        GPIO_write_low(&PORTD, trig);
+        
+        i = 0;
+    }
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+    ++distance_cm;
 }

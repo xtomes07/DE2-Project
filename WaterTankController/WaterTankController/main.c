@@ -3,8 +3,8 @@
  * Distance measurement using HC-SR04 Ultrasonic Distance Sensor
  * ATmega328P (Arduino Uno), 16 MHz, AVR 8-bit Toolchain 3.6.2
  *
- * Copyright (c) 2021 Czmelov· Zuzana, Czmelov· Zuzana, 
- *                    To?en˝ Ivo, Tomeöek Ji?Ì
+ * Copyright (c) 2021 Czmelov√° Zuzana, Shelemba Pavlo, Toƒçen√Ω Ivo, 
+ *                    Tome≈°ek Ji≈ô√≠
  * This work is licensed under the terms of the MIT license
  * 
  **********************************************************************/
@@ -59,10 +59,11 @@ int main(void)
     
     
     // Any logical change on INT0 generates an interrupt request
-    EICRA |= (1 << ISC00); EICRA &= ~((1 << ISC11) | (1 << ISC10) | (1 << ISC01)); 
-
+    EICRA |= (1 << ISC00); 
+    // Not strictly necessary, as register default values are already 0
+    EICRA &= ~((1 << ISC11) | (1 << ISC10) | (1 << ISC01)); 
     // External Interrupt Request Enable
-    EIMSK |= (1 << INT0);
+    EIMSK |= (1 << INT0); EIMSK &= ~(1 << INT1);
     
     // Overflow timer for trigger signal
     TIM1_overflow_33ms();
@@ -73,7 +74,14 @@ int main(void)
 
     // Infinite loop
     while (1)
-    {}
+    {
+        // 118 clocks of TIM0 with prescaler N=8 takes 58 us (~1cm for sound wave)
+        if (TCNT0 >= 117)
+        {
+            ++distance;
+            TCNT0 = 0;
+        }
+    }
 
     return 0;
 }
@@ -94,9 +102,9 @@ ISR(INT0_vect)
         TCNT0 = 0;
         
         // Calculate distance in centimeters and put in on LCD
-        itoa(distance/4, lcd_str, 10);
+        itoa(distance, lcd_str, 10);
         lcd_gotoxy(8, 0);
-        lcd_puts("   ");
+        lcd_puts("    ");
         lcd_gotoxy(8, 0);
         lcd_puts(lcd_str);
         
@@ -107,9 +115,8 @@ ISR(INT0_vect)
         // Clear previous calculated distance before next measurement
         distance = 0;
         
-        // Start counting echo
-        TIM0_overflow_16us();     
-        TIM0_overflow_interrupt_enable();
+        // Start counting echo using 8-bit counter with prescaler N=8
+        TIM0_overflow_128us();     
         
         i = 1;
     }
@@ -121,9 +128,4 @@ ISR(TIMER1_OVF_vect)
     GPIO_write_high(&PORTD, trig);
     _delay_us(10);
     GPIO_write_low(&PORTD, trig);
-}
-
-ISR(TIMER0_OVF_vect)
-{
-    ++distance;
 }

@@ -12,6 +12,8 @@
 /* Defines -----------------------------------------------------------*/
 #define trig PD0		    // Trigger Pin
 #define echo PD2			// Echo Pin
+#define RELAY_PUMP PC0		// Pin for relay to pump
+#define	CONTROL_PUMP PC1	// Pin for control to pump
 #ifndef F_CPU
 #define F_CPU 16000000UL    // CPU frequency in Hz for delay.h
 #endif
@@ -27,6 +29,7 @@
 
 /* Variables ---------------------------------------------------------*/
 uint16_t distance_cm = 0;
+
 
 /* Function definitions ----------------------------------------------*/
 /**********************************************************************
@@ -44,17 +47,24 @@ int main(void)
 	// Configure Echo PIN
 	GPIO_config_input_pullup(&DDRD, echo);
 	
+	//Configure Control PUMP Pin
+	GPIO_config_input_nopull(&DDRC, CONTROL_PUMP);
+
+	//Configure Relay PUMP Pin
+	GPIO_config_output(&DDRC, RELAY_PUMP);
+	GPIO_write_low(&PORTC, RELAY_PUMP );
+	
     // Initialize LCD display
     lcd_init(LCD_DISP_ON);
 
     // Put strings on LCD display
-    lcd_gotoxy(1, 0);
+    lcd_gotoxy(0, 0);
     lcd_puts("LEVEL:");
     
-    lcd_gotoxy(12, 0);
-    lcd_puts("cm");
+    lcd_gotoxy(8, 0);
+    lcd_puts("%");
     
-	lcd_gotoxy(1, 1);
+	lcd_gotoxy(0, 1);
 	lcd_puts("PUMP:");
     
     
@@ -100,15 +110,47 @@ ISR(INT0_vect)
     {
         // Disable counter
         TCCR1B |= 0;
-        
+        /*Clear display value
+		lcd_gotoxy(6, 0);
+		lcd_puts("   ");*/
         // Calculate distance in centimeters and put in on LCD
-        itoa(distance_cm, lcd_str, 10);
-        lcd_gotoxy(8, 0);
-        lcd_puts("    ");
-        lcd_gotoxy(8, 0);
+		if(distance_cm > 400 || distance_cm < 2)	//
+		{	
+			sprintf(lcd_str, "ERR");
+			lcd_gotoxy(8, 0);
+			lcd_puts(" ");
+		}
+		else
+		{
+			itoa(100-(distance_cm/4), lcd_str, 10); //predelat
+
+			if (distance_cm < 40)
+			{
+				lcd_gotoxy(7, 0);
+				lcd_puts("% ");
+			}
+			else
+			{
+			lcd_gotoxy(8, 0);
+			lcd_puts("%");	
+			}
+			
+		}
+        lcd_gotoxy(6, 0);
         lcd_puts(lcd_str);
+		
         
         i = 0;
+		
+		//Control Relay for Pump
+		if(GPIO_read(&PINC, CONTROL_PUMP) && distance_cm >= 30)	//
+		{
+			GPIO_write_high(&PORTC,RELAY_PUMP);
+		}
+		else
+		{
+			GPIO_write_low(&PORTC, RELAY_PUMP);	
+		}
     }
     else
     {

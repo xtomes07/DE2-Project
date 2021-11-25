@@ -12,9 +12,10 @@
 /* Defines -----------------------------------------------------------*/
 #define trig         PD0	// Trigger Pin
 #define echo         PD2	// Echo Pin
-#define servo        PB2    // Servo pin
+#define servo        PB2    // Servo velve pin
 #define relay        PC0	// Pin for relay to pump
 #define	pump         PC1	// Pin for control to pump
+#define btn_servo	 PC2	// Pin for control servo valve
 #ifndef F_CPU
 #define F_CPU 16000000UL    // CPU frequency in Hz for delay.h
 #endif
@@ -99,6 +100,9 @@ int main(void)
     GPIO_config_output(&DDRB, servo);
     GPIO_write_low(&PORTB, servo );
 	
+	//Configure Control Servo PIN
+	GPIO_config_input_nopull(&DDRC, btn_servo);
+	
     // Initialize LCD display
     lcd_init(LCD_DISP_ON);
 
@@ -107,8 +111,10 @@ int main(void)
     lcd_puts("LEVEL:");
     lcd_gotoxy(11, 0);
     lcd_puts("%");
-	lcd_gotoxy(1, 1);
-	lcd_puts("PUMP :");
+	lcd_gotoxy(0, 1);
+	lcd_puts("PMP:");			//pump
+	lcd_gotoxy(9, 1);
+	lcd_puts("VLV:CLS");			//valve	
     
     // Any logical change on INT0 generates an interrupt request
     EICRA |= (1 << ISC00); 
@@ -192,11 +198,21 @@ ISR(INT0_vect)
         lcd_puts(lcd_str);
         
         // Check for water excess
-        if (distance_cm < 20)
-            open_valve();
+        if (distance_cm < 20 || GPIO_read(&PINC, btn_servo))
+            {open_valve();
+			
+			lcd_gotoxy(13, 1);
+			lcd_puts("OPN");  //open
+			}
+			
         else if (valveIsOpen)
-            close_valve();
-
+            {
+			close_valve();
+			
+			lcd_gotoxy(13, 1);
+			lcd_puts("CLS");  //close
+			}
+			
         // Check if pump is on
 		if(GPIO_read(&PINC, pump) && distance_cm > 40)
         {
@@ -204,14 +220,14 @@ ISR(INT0_vect)
             
             lcd_gotoxy(10, 1);
             lcd_puts(" ");
-            lcd_gotoxy(8, 1);
-            lcd_puts("ON");
+            lcd_gotoxy(4, 1);
+            lcd_puts("ON ");
         }            
 		else
         {
 			pump_off();
             
-            lcd_gotoxy(8, 1);
+            lcd_gotoxy(4, 1);
             lcd_puts("OFF");
         }            
 		

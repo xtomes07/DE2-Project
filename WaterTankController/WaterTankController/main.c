@@ -10,12 +10,14 @@
  **********************************************************************/
 
 /* Defines -----------------------------------------------------------*/
-#define trig         PD0	// Trigger Pin
-#define echo         PD2	// Echo Pin
+#define trig         PD0    // Trigger Pin
+#define echo         PD2    // Echo Pin
 #define servo        PB2    // Servo velve pin
-#define relay        PC0	// Pin for relay to pump
-#define	pump         PC1	// Pin for control to pump
-#define btn_servo	 PC2	// Pin for control servo valve
+#define led_green    PB6    // Servo velve pin
+#define led_red      PB7    // Servo velve pin
+#define relay        PC0    // Pin for pump relay control 
+#define pump         PC1    // Pin for pump switch 
+#define btn_servo    PC2    // Pin for servo valve switch 
 #ifndef F_CPU
 #define F_CPU 16000000UL    // CPU frequency in Hz for delay.h
 #endif
@@ -82,39 +84,45 @@ void pump_off()
  **********************************************************************/
 int main(void)
 {
-	// Configure Trig PIN
-	GPIO_config_output(&DDRD, trig);
-	GPIO_write_low(&PORTD, trig);
-	
-	// Configure Echo PIN
-	GPIO_config_input_pullup(&DDRD, echo);
-	
-	//Configure Control Pump PIN
-	GPIO_config_input_nopull(&DDRC, pump);
+    // Configure Trig PIN
+    GPIO_config_output(&DDRD, trig);
+    GPIO_write_low(&PORTD, trig);
     
-	//Configure Relay Pump PIN
-	GPIO_config_output(&DDRC, relay);
-	GPIO_write_low(&PORTC, relay );
+    // Configure Echo PIN
+    GPIO_config_input_pullup(&DDRD, echo);
     
-    //Configure Servo PIN
+    // Configure Control Pump PIN
+    GPIO_config_input_nopull(&DDRC, pump);
+    
+    // Configure Relay Pump PIN
+    GPIO_config_output(&DDRC, relay);
+    GPIO_write_low(&PORTC, relay);
+    
+    // Configure Servo PIN
     GPIO_config_output(&DDRB, servo);
-    GPIO_write_low(&PORTB, servo );
-	
-	//Configure Control Servo PIN
-	GPIO_config_input_nopull(&DDRC, btn_servo);
-	
+    GPIO_write_low(&PORTB, servo);
+    
+    // Configure Control Servo PIN
+    GPIO_config_input_nopull(&DDRC, btn_servo);
+    
+    // Configure LED PINs
+    GPIO_config_output(&DDRB, led_green);
+    GPIO_write_low(&PORTB, led_green);
+    GPIO_config_output(&DDRB, led_red);
+    GPIO_write_low(&PORTB, led_red);
+    
     // Initialize LCD display
     lcd_init(LCD_DISP_ON);
 
     // Put strings on LCD display
-    lcd_gotoxy(1, 0);
-    lcd_puts("LEVEL:");
-    lcd_gotoxy(11, 0);
+    lcd_gotoxy(0, 0);
+    lcd_puts("LVL:");
+    lcd_gotoxy(6, 0);
     lcd_puts("%");
-	lcd_gotoxy(0, 1);
-	lcd_puts("PMP:");			//pump
-	lcd_gotoxy(9, 1);
-	lcd_puts("VLV:CLS");			//valve	
+    lcd_gotoxy(0, 1);
+    lcd_puts("PMP:");
+    lcd_gotoxy(9, 1);
+    lcd_puts("VLV:CLS");
     
     // Any logical change on INT0 generates an interrupt request
     EICRA |= (1 << ISC00); 
@@ -155,7 +163,7 @@ ISR(INT0_vect)
     // Water tank fill level 
     static uint8_t volume = 0;
     
-    if(i)
+    if (i)
     {
         // Disable counter
         TCCR1B |= 0;
@@ -164,12 +172,18 @@ ISR(INT0_vect)
         if (distance_cm > 399)
         {
             strcpy(lcd_str, "EMPTY");
+            
+            GPIO_write_low(&PORTB, led_green);
+            GPIO_write_high(&PORTB, led_red);
         }      
         else if (distance_cm < 40)
         {
-            lcd_gotoxy(12, 0);
+            lcd_gotoxy(8, 0);
             lcd_puts(" ");
             strcpy(lcd_str, "FULL");
+            
+            GPIO_write_high(&PORTB, led_green);
+            GPIO_write_low(&PORTB, led_red);
         }
         else
         {
@@ -179,58 +193,55 @@ ISR(INT0_vect)
             
             if (volume > 9)
             {
-                lcd_gotoxy(10, 0);
-                lcd_puts(" ");
-                lcd_gotoxy(11, 0);
-                lcd_puts("% ");
+                lcd_gotoxy(6, 0);
+                lcd_puts("%  ");
             }
             else
             {
-                lcd_gotoxy(9, 0);
-                lcd_puts(" ");
-                lcd_gotoxy(10, 0);
-                lcd_puts("%  ");
+                lcd_gotoxy(5, 0);
+                lcd_puts("%   ");
             }
+            
+            GPIO_write_low(&PORTB, led_green);
+            GPIO_write_low(&PORTB, led_red);
         }            
         
         // Put tank fill level on LCD  
-        lcd_gotoxy(8, 0);
+        lcd_gotoxy(4, 0);
         lcd_puts(lcd_str);
         
         // Check for water excess
         if (distance_cm < 20 || GPIO_read(&PINC, btn_servo))
-            {open_valve();
-			
-			lcd_gotoxy(13, 1);
-			lcd_puts("OPN");  //open
-			}
-			
-        else if (valveIsOpen)
-            {
-			close_valve();
-			
-			lcd_gotoxy(13, 1);
-			lcd_puts("CLS");  //close
-			}
-			
-        // Check if pump is on
-		if(GPIO_read(&PINC, pump) && distance_cm > 40)
         {
-			pump_on();
+            open_valve();
             
-            lcd_gotoxy(10, 1);
-            lcd_puts(" ");
+            lcd_gotoxy(13, 1);
+            lcd_puts("OPN");
+        }
+        else if (valveIsOpen)
+        {
+            close_valve();
+            
+            lcd_gotoxy(13, 1);
+            lcd_puts("CLS");
+        }
+            
+        // Check if pump is on
+        if (GPIO_read(&PINC, pump) && distance_cm > 40)
+        {
+            pump_on();
+            
             lcd_gotoxy(4, 1);
             lcd_puts("ON ");
         }            
-		else
+        else
         {
-			pump_off();
+            pump_off();
             
             lcd_gotoxy(4, 1);
             lcd_puts("OFF");
         }            
-		
+        
         i = 0;
     }
     else

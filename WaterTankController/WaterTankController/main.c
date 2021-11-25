@@ -1,6 +1,6 @@
 /***********************************************************************
  * 
- * Distance measurement using HC-SR04 Ultrasonic Distance Sensor
+ * Water tank controller.
  * ATmega328P (Arduino Uno), 16 MHz, AVR 8-bit Toolchain 3.6.2
  *
  * Copyright (c) 2021 Czmelová Zuzana, Shelemba Pavlo, Točený Ivo, 
@@ -10,10 +10,11 @@
  **********************************************************************/
 
 /* Defines -----------------------------------------------------------*/
-#define trig PD0		    // Trigger Pin
-#define echo PD2			// Echo Pin
-#define RELAY_PUMP PC0		// Pin for relay to pump
-#define	CONTROL_PUMP PC1	// Pin for control to pump
+#define trig         PD0	// Trigger Pin
+#define echo         PD2	// Echo Pin
+#define servo        PB2    // Servo pin
+#define relay        PC0	// Pin for relay to pump
+#define	pump         PC1	// Pin for control to pump
 #ifndef F_CPU
 #define F_CPU 16000000UL    // CPU frequency in Hz for delay.h
 #endif
@@ -25,13 +26,53 @@
 #include "timer.h"          // Timer library for AVR-GCC
 #include "lcd.h"            // Peter Fleury's LCD library
 #include "gpio.h"           // GPIO library for AVR-GCC
-#include <stdlib.h>         // C library. Needed for conversion function
+#include <stdlib.h>         // C library for conversion function
+#include <string.h>         // C library for string manipulations
 
 /* Variables ---------------------------------------------------------*/
 uint16_t distance_cm = 0;
-
+uint8_t valveIsOpen = 0;
 
 /* Function definitions ----------------------------------------------*/
+void send_trigger()
+{
+    GPIO_write_high(&PORTD, trig);
+    _delay_us(10);
+    GPIO_write_low(&PORTD, trig);
+}
+
+void open_valve()
+{
+    GPIO_write_high(&PORTB, servo);
+    _delay_ms(2);
+    GPIO_write_low(&PORTB, servo);
+    _delay_ms(18);
+    
+    valveIsOpen = 1;
+}
+
+void close_valve()
+{
+    GPIO_write_high(&PORTB, servo);
+    _delay_ms(1.5);
+    GPIO_write_low(&PORTB, servo);
+    _delay_ms(18.5);
+    
+    valveIsOpen = 0;
+}
+
+void pump_on()
+{
+    // Turn relay for Pump on
+    GPIO_write_high(&PORTC, relay);
+}
+
+void pump_off()
+{
+    // Turn relay for Pump off
+    GPIO_write_low(&PORTC, relay);
+}
+
 /**********************************************************************
  * Function: Main function where the program execution begins
  * Purpose:  Update stopwatch value on LCD display when 8-bit 
@@ -47,26 +88,27 @@ int main(void)
 	// Configure Echo PIN
 	GPIO_config_input_pullup(&DDRD, echo);
 	
-	//Configure Control PUMP Pin
-	GPIO_config_input_nopull(&DDRC, CONTROL_PUMP);
-
-	//Configure Relay PUMP Pin
-	GPIO_config_output(&DDRC, RELAY_PUMP);
-	GPIO_write_low(&PORTC, RELAY_PUMP );
+	//Configure Control Pump PIN
+	GPIO_config_input_nopull(&DDRC, pump);
+    
+	//Configure Relay Pump PIN
+	GPIO_config_output(&DDRC, relay);
+	GPIO_write_low(&PORTC, relay );
+    
+    //Configure Servo PIN
+    GPIO_config_output(&DDRB, servo);
+    GPIO_write_low(&PORTB, servo );
 	
     // Initialize LCD display
     lcd_init(LCD_DISP_ON);
 
     // Put strings on LCD display
-    lcd_gotoxy(0, 0);
+    lcd_gotoxy(1, 0);
     lcd_puts("LEVEL:");
-    
-    lcd_gotoxy(8, 0);
+    lcd_gotoxy(11, 0);
     lcd_puts("%");
-    
-	lcd_gotoxy(0, 1);
-	lcd_puts("PUMP:");
-    
+	lcd_gotoxy(1, 1);
+	lcd_puts("PUMP :");
     
     // Any logical change on INT0 generates an interrupt request
     EICRA |= (1 << ISC00); 
@@ -82,8 +124,7 @@ int main(void)
     // 340 m/s sound wave propagates by 1 cm in ~58,8235 us
     // Empirical measurement suggests that 930 clocks of TIM1
     // with prescaler N=1 takes almost the same amount of time
-    // This value will probably change with growing complexity
-    // of the program
+    // Set MAX TIM1 value to this value
     OCR1A = 930;
     // Enable Timer/Counter1 Output Compare A Match interrupt    
     TIMSK1 |= (1 << OCIE1A);
@@ -105,52 +146,76 @@ ISR(INT0_vect)
     static char lcd_str[16];
     // Change of state counter
     static uint8_t i = 0;
+    // Water tank fill level 
+    static uint8_t volume = 0;
     
     if(i)
     {
         // Disable counter
         TCCR1B |= 0;
-        /*Clear display value
-		lcd_gotoxy(6, 0);
-		lcd_puts("   ");*/
-        // Calculate distance in centimeters and put in on LCD
-		if(distance_cm > 400 || distance_cm < 2)	//
-		{	
-			sprintf(lcd_str, "ERR");
-			lcd_gotoxy(8, 0);
-			lcd_puts(" ");
-		}
-		else
-		{
-			itoa(100-(distance_cm/4), lcd_str, 10); //predelat
-
-			if (distance_cm < 40)
-			{
-				lcd_gotoxy(7, 0);
-				lcd_puts("% ");
-			}
-			else
-			{
-			lcd_gotoxy(8, 0);
-			lcd_puts("%");	
-			}
-			
-		}
-        lcd_gotoxy(6, 0);
-        lcd_puts(lcd_str);
-		
+         
+        // Check tank fill level
+        if (distance_cm > 399)
+        {
+            strcpy(lcd_str, "EMPTY");
+        }      
+        else if (distance_cm < 40)
+        {
+            lcd_gotoxy(12, 0);
+            lcd_puts(" ");
+            strcpy(lcd_str, "FULL");
+        }
+        else
+        {
+            volume = 100 - distance_cm / 4;
+            
+            itoa(volume, lcd_str, 10);
+            
+            if (volume > 9)
+            {
+                lcd_gotoxy(10, 0);
+                lcd_puts(" ");
+                lcd_gotoxy(11, 0);
+                lcd_puts("% ");
+            }
+            else
+            {
+                lcd_gotoxy(9, 0);
+                lcd_puts(" ");
+                lcd_gotoxy(10, 0);
+                lcd_puts("%  ");
+            }
+        }            
         
-        i = 0;
-		
-		//Control Relay for Pump
-		if(GPIO_read(&PINC, CONTROL_PUMP) && distance_cm >= 30)	//
-		{
-			GPIO_write_high(&PORTC,RELAY_PUMP);
-		}
+        // Put tank fill level on LCD  
+        lcd_gotoxy(8, 0);
+        lcd_puts(lcd_str);
+        
+        // Check for water excess
+        if (distance_cm < 20)
+            open_valve();
+        else if (valveIsOpen)
+            close_valve();
+
+        // Check if pump is on
+		if(GPIO_read(&PINC, pump) && distance_cm > 40)
+        {
+			pump_on();
+            
+            lcd_gotoxy(10, 1);
+            lcd_puts(" ");
+            lcd_gotoxy(8, 1);
+            lcd_puts("ON");
+        }            
 		else
-		{
-			GPIO_write_low(&PORTC, RELAY_PUMP);	
-		}
+        {
+			pump_off();
+            
+            lcd_gotoxy(8, 1);
+            lcd_puts("OFF");
+        }            
+		
+        i = 0;
     }
     else
     {
@@ -172,13 +237,10 @@ ISR(TIMER0_OVF_vect)
     
     ++i;
     
-    // Trigger the ultrasonic sensor every ~40 ms
+    // Trigger ultrasonic sensor every ~40 ms
     if (i == 9)
     {  
-        GPIO_write_high(&PORTD, trig);
-        _delay_us(10);
-        GPIO_write_low(&PORTD, trig);
-        
+        send_trigger();
         i = 0;
     }
 }
@@ -186,4 +248,9 @@ ISR(TIMER0_OVF_vect)
 ISR(TIMER1_COMPA_vect)
 {
     ++distance_cm;
+    
+    if (distance_cm > 400)
+    {
+        distance_cm = 400;
+    }
 }

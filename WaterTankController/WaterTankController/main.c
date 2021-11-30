@@ -12,14 +12,14 @@
  **********************************************************************/
 
 /* Defines -----------------------------------------------------------*/
-#define trig         PD0    // Trigger Pin
-#define echo         PD2    // Echo Pin
-#define servo        PB2    // Servo velve pin
-#define led_green    PB6    // Servo velve pin
-#define led_red      PB7    // Servo velve pin
-#define relay        PC0    // Pin for pump relay control 
-#define pump         PC1    // Pin for pump switch 
-#define btn_servo    PC2    // Pin for servo valve switch 
+#define TRIG        PD0    // Trigger Pin
+#define ECHO        PD2    // Echo Pin
+#define SERVO       PB2    // Servo valve pin
+#define LED_G       PB6    // Servo valve pin
+#define LED_R       PB7    // Servo valve pin
+#define RELAY       PC0    // Pin for pump relay control 
+#define SW_PUMP     PC1    // Pin for pump switch 
+#define SW_SERVO    PC2    // Pin for servo valve switch 
 #ifndef F_CPU
 #define F_CPU 16000000UL    // CPU frequency in Hz for delay.h
 #endif
@@ -37,15 +37,15 @@
 /* Variables ---------------------------------------------------------*/
 
 // Max water height in cm 
-uint16_t HEIGHT = 400;
+uint16_t height = 400;
 // Gap between sensor and max water height in cm
-uint16_t AIR    = 20;
+uint16_t air    = 20;
 
 // Max water level before valve opens
-uint16_t MAX;
+uint16_t max;
 
 // Measured distance in cm
-uint16_t DISTANCE = 0;
+uint16_t distance    = 0;
 // Booleans for electromechanics
 uint8_t  valveIsOpen = 0;
 uint8_t  pumpIsOn    = 0;
@@ -109,16 +109,16 @@ uint16_t customChar[] = {
 /* Function definitions ----------------------------------------------*/
 void send_trigger()
 {
-    GPIO_write_high(&PORTD, trig);
+    GPIO_write_high(&PORTD, TRIG);
     _delay_us(10);
-    GPIO_write_low(&PORTD, trig);
+    GPIO_write_low(&PORTD, TRIG);
 }
 
 void open_valve()
 {
-    GPIO_write_high(&PORTB, servo);
+    GPIO_write_high(&PORTB, SERVO);
     _delay_ms(2);
-    GPIO_write_low(&PORTB, servo);
+    GPIO_write_low(&PORTB, SERVO);
     _delay_ms(18);
     
     valveIsOpen = 1;
@@ -128,9 +128,9 @@ void open_valve()
 
 void close_valve()
 {
-    GPIO_write_high(&PORTB, servo);
+    GPIO_write_high(&PORTB, SERVO);
     _delay_ms(1.5);
-    GPIO_write_low(&PORTB, servo);
+    GPIO_write_low(&PORTB, SERVO);
     _delay_ms(18.5);
     
     valveIsOpen = 0;
@@ -142,7 +142,7 @@ void close_valve()
 void pump_on()
 {
     // Turn relay for Pump on
-    GPIO_write_high(&PORTC, relay);
+    GPIO_write_high(&PORTC, RELAY);
     
     pumpIsOn = 1;
 
@@ -152,7 +152,7 @@ void pump_on()
 void pump_off()
 {
     // Turn relay for Pump off
-    GPIO_write_low(&PORTC, relay);
+    GPIO_write_low(&PORTC, RELAY);
     
     pumpIsOn = 0;
 
@@ -168,36 +168,35 @@ void pump_off()
  **********************************************************************/
 int main(void)
 {
-    AIR -= 1;
     // Set max water level halfway between sensor and water
-    MAX = AIR / 2;
+    max = air / 2;
     
     // Configure Trig PIN
-    GPIO_config_output(&DDRD, trig);
-    GPIO_write_low(&PORTD, trig);
+    GPIO_config_output(&DDRD, TRIG);
+    GPIO_write_low(&PORTD, TRIG);
     
     // Configure Echo PIN
-    GPIO_config_input_pullup(&DDRD, echo);
+    GPIO_config_input_pullup(&DDRD, ECHO);
     
     // Configure Control Pump PIN
-    GPIO_config_input_nopull(&DDRC, pump);
+    GPIO_config_input_nopull(&DDRC, SW_PUMP);
     
     // Configure Relay Pump PIN
-    GPIO_config_output(&DDRC, relay);
-    GPIO_write_low(&PORTC, relay);
+    GPIO_config_output(&DDRC, RELAY);
+    GPIO_write_low(&PORTC, RELAY);
     
     // Configure Servo PIN
-    GPIO_config_output(&DDRB, servo);
-    GPIO_write_low(&PORTB, servo);
+    GPIO_config_output(&DDRB, SERVO);
+    GPIO_write_low(&PORTB, SERVO);
     
     // Configure Control Servo PIN
-    GPIO_config_input_nopull(&DDRC, btn_servo);
+    GPIO_config_input_nopull(&DDRC, SW_SERVO);
     
     // Configure LED PINs
-    GPIO_config_output(&DDRB, led_green);
-    GPIO_write_low(&PORTB, led_green);
-    GPIO_config_output(&DDRB, led_red);
-    GPIO_write_low(&PORTB, led_red);
+    GPIO_config_output(&DDRB, LED_G);
+    GPIO_write_low(&PORTB, LED_G);
+    GPIO_config_output(&DDRB, LED_R);
+    GPIO_write_low(&PORTB, LED_R);
     
     // Initialize LCD display
     lcd_init(LCD_DISP_ON);
@@ -272,7 +271,7 @@ ISR(INT0_vect)
         TCCR1B |= 0;
         
         // Calculate the volume of water in the tank in %
-        volume = 100 - ((DISTANCE - AIR) * 100 / HEIGHT);
+        volume = 100 - ((distance - air) * 100 / height);
 
         if (volume > 99) {
             strcpy(lcd_str, "FULL");
@@ -284,9 +283,9 @@ ISR(INT0_vect)
 			lcd_putc(5);
             
             if (!pumpIsOn)
-                GPIO_write_high(&PORTB, led_green);
+                GPIO_write_high(&PORTB, LED_G);
             if (!valveIsOpen)
-                GPIO_write_low(&PORTB, led_red);
+                GPIO_write_low(&PORTB, LED_R);
         }
         else if (volume > 9) {
             itoa(volume, lcd_str, 10);
@@ -322,9 +321,9 @@ ISR(INT0_vect)
 			}
             
             if (!pumpIsOn)
-                GPIO_write_low(&PORTB, led_green);
+                GPIO_write_low(&PORTB, LED_G);
             if (!valveIsOpen)
-                GPIO_write_low(&PORTB, led_red);
+                GPIO_write_low(&PORTB, LED_R);
         }
         else if (volume > 0) {
             itoa(volume, lcd_str, 10);
@@ -333,9 +332,9 @@ ISR(INT0_vect)
             lcd_puts("%   ");
             
             if (!pumpIsOn)
-                GPIO_write_low(&PORTB, led_green);
+                GPIO_write_low(&PORTB, LED_G);
             if (!valveIsOpen)
-                GPIO_write_low(&PORTB, led_red);
+                GPIO_write_low(&PORTB, LED_R);
         }
         else {
             strcpy(lcd_str, "EMPTY");
@@ -344,9 +343,9 @@ ISR(INT0_vect)
 			lcd_putc(0);
 			
             if (!pumpIsOn)
-                GPIO_write_low(&PORTB, led_green);
+                GPIO_write_low(&PORTB, LED_G);
             if (!valveIsOpen)
-                GPIO_write_high(&PORTB, led_red);
+                GPIO_write_high(&PORTB, LED_R);
         } 
         
         // Put tank fill level on LCD  
@@ -354,7 +353,7 @@ ISR(INT0_vect)
         lcd_puts(lcd_str);
         
         // Check for water excess (level is greater than max allowed value)
-        if (DISTANCE < MAX || GPIO_read(&PINC, btn_servo)) {
+        if (distance < max || GPIO_read(&PINC, SW_SERVO)) {
             if (!valveIsOpen)
                 open_valve();
 
@@ -368,8 +367,8 @@ ISR(INT0_vect)
             lcd_puts("CLS");
         }
             
-        // Check whether pump is on and water level is OK
-        if (DISTANCE > AIR && GPIO_read(&PINC, pump)) {
+        // Check whether pump is on and whether water level is OK
+        if (distance > air && GPIO_read(&PINC, SW_PUMP)) {
             pump_on();
             
             lcd_gotoxy(4, 1);
@@ -386,7 +385,7 @@ ISR(INT0_vect)
     }
     else {
         // Clear previous calculated distance before next measurement
-        DISTANCE = 0;
+        distance = 0;
         
         // Start counting echo using 16-bit counter with prescaler N=1
         TIM1_overflow_4ms();  
@@ -412,9 +411,9 @@ ISR(TIMER0_OVF_vect)
 
 ISR(TIMER1_COMPA_vect)
 {
-    ++DISTANCE;
+    ++distance;
     
-    if (DISTANCE >= HEIGHT + AIR)
+    if (distance >= height + air)
         TIM1_stop();
 }
 
@@ -425,9 +424,9 @@ ISR(TIMER2_OVF_vect)
      // Toggle LED(s) every ~500ms
     if (number_of_overflows >= 31) {
         if (valveIsOpen)
-            GPIO_toggle(&PORTB, led_red);
+            GPIO_toggle(&PORTB, LED_R);
         if (pumpIsOn)
-            GPIO_toggle(&PORTB, led_green);
+            GPIO_toggle(&PORTB, LED_G);
         
         number_of_overflows = 0;
     }        

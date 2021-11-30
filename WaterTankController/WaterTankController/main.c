@@ -3,8 +3,10 @@
  * Water tank controller.
  * ATmega328P (Arduino Uno), 16 MHz, AVR 8-bit Toolchain 3.6.2
  *
- * Copyright (c) 2021 Czmelová Zuzana, Shelemba Pavlo, Točený Ivo, 
- *                    Tomešek Jiří
+ * Copyright (c) 2021 Czmelová Zuzana             
+ * Copyright (c) 2021 Shelemba Pavlo
+ * Copyright (c) 2021 Točený Ivo
+ * Copyright (c) 2021 Tomešek Jiří
  * This work is licensed under the terms of the MIT license
  * 
  **********************************************************************/
@@ -34,7 +36,8 @@
 
 /* Variables ---------------------------------------------------------*/
 uint16_t distance_cm = 0;
-uint8_t valveIsOpen = 0;
+uint8_t  valveIsOpen = 0;
+uint8_t  pumpIsOn    = 0;
 
 /* Function definitions ----------------------------------------------*/
 void send_trigger()
@@ -52,6 +55,8 @@ void open_valve()
     _delay_ms(18);
     
     valveIsOpen = 1;
+    
+    TIM2_overflow_16ms();
 }
 
 void close_valve()
@@ -62,18 +67,30 @@ void close_valve()
     _delay_ms(18.5);
     
     valveIsOpen = 0;
+    
+    if (!pumpIsOn)
+        TIM2_stop();
 }
 
 void pump_on()
 {
     // Turn relay for Pump on
     GPIO_write_high(&PORTC, relay);
+    
+    pumpIsOn = 1;
+    
+    TIM2_overflow_16ms();
 }
 
 void pump_off()
 {
     // Turn relay for Pump off
     GPIO_write_low(&PORTC, relay);
+    
+    pumpIsOn = 0;
+    
+    if (!valveIsOpen)
+        TIM2_stop();
 }
 
 /**********************************************************************
@@ -125,15 +142,19 @@ int main(void)
     lcd_puts("VLV:CLS");
     
     // Any logical change on INT0 generates an interrupt request
+    // The rising edge of INT1 generates an interrupt request
     EICRA |= (1 << ISC00); 
     // Not strictly necessary, as register default values are already 0
-    EICRA &= ~((1 << ISC11) | (1 << ISC10) | (1 << ISC01)); 
+    EICRA &= ~((1 << ISC01) | (1 << ISC11) | (1 << ISC10)); 
     // External Interrupt Request Enable
-    EIMSK |= (1 << INT0); EIMSK &= ~(1 << INT1);
+    EIMSK |= (1 << INT0); EIMSK  &= ~(1 << INT1);
     
     // Overflow timer for trigger signal
     TIM0_overflow_4ms();
     TIM0_overflow_interrupt_enable();
+    
+    // Set overflow flag for LED timer
+    TIM2_overflow_interrupt_enable();
 
     // 340 m/s sound wave propagates by 1 cm in ~58,8235 us
     // Empirical measurement suggests that 930 clocks of TIM1
@@ -147,8 +168,7 @@ int main(void)
     sei();
 
     // Infinite loop
-    while (1)
-    {}
+    while (1) {}
 
     return 0;
 }
@@ -163,47 +183,47 @@ ISR(INT0_vect)
     // Water tank fill level 
     static uint8_t volume = 0;
     
-    if (i)
-    {
+    if (i) {
         // Disable counter
         TCCR1B |= 0;
          
         // Check tank fill level
-        if (distance_cm > 399)
-        {
+        if (distance_cm > 399) {
             strcpy(lcd_str, "EMPTY");
             
-            GPIO_write_low(&PORTB, led_green);
-            GPIO_write_high(&PORTB, led_red);
+            if (!pumpIsOn)
+                GPIO_write_low(&PORTB, led_green);
+            if (!valveIsOpen)
+                GPIO_write_high(&PORTB, led_red);
         }      
-        else if (distance_cm < 40)
-        {
+        else if (distance_cm < 40) {
             lcd_gotoxy(8, 0);
             lcd_puts(" ");
             strcpy(lcd_str, "FULL");
             
-            GPIO_write_high(&PORTB, led_green);
-            GPIO_write_low(&PORTB, led_red);
+            if (!pumpIsOn)
+                GPIO_write_high(&PORTB, led_green);
+            if (!valveIsOpen)
+                GPIO_write_low(&PORTB, led_red); 
         }
-        else
-        {
+        else {
             volume = 100 - distance_cm / 4;
             
             itoa(volume, lcd_str, 10);
             
-            if (volume > 9)
-            {
+            if (volume > 9) {
                 lcd_gotoxy(6, 0);
                 lcd_puts("%  ");
             }
-            else
-            {
+            else {
                 lcd_gotoxy(5, 0);
                 lcd_puts("%   ");
             }
             
-            GPIO_write_low(&PORTB, led_green);
-            GPIO_write_low(&PORTB, led_red);
+            if (!pumpIsOn)
+                GPIO_write_low(&PORTB, led_green);
+            if (!valveIsOpen)
+                GPIO_write_low(&PORTB, led_red);
         }            
         
         // Put tank fill level on LCD  
@@ -211,15 +231,14 @@ ISR(INT0_vect)
         lcd_puts(lcd_str);
         
         // Check for water excess
-        if (distance_cm < 20 || GPIO_read(&PINC, btn_servo))
-        {
-            open_valve();
-            
+        if (distance_cm < 20 || GPIO_read(&PINC, btn_servo)) {
+            if (!valveIsOpen)
+                open_valve();
+
             lcd_gotoxy(13, 1);
             lcd_puts("OPN");
         }
-        else if (valveIsOpen)
-        {
+        else if (valveIsOpen) {
             close_valve();
             
             lcd_gotoxy(13, 1);
@@ -227,15 +246,13 @@ ISR(INT0_vect)
         }
             
         // Check if pump is on
-        if (GPIO_read(&PINC, pump) && distance_cm > 40)
-        {
+        if (GPIO_read(&PINC, pump) && distance_cm > 40) {
             pump_on();
             
             lcd_gotoxy(4, 1);
             lcd_puts("ON ");
-        }            
-        else
-        {
+        } 
+        else {
             pump_off();
             
             lcd_gotoxy(4, 1);
@@ -244,8 +261,7 @@ ISR(INT0_vect)
         
         i = 0;
     }
-    else
-    {
+    else {
         // Clear previous calculated distance before next measurement
         distance_cm = 0;
         
@@ -261,12 +277,10 @@ ISR(INT0_vect)
 ISR(TIMER0_OVF_vect)
 {
     static uint8_t i = 0;
-    
     ++i;
     
     // Trigger ultrasonic sensor every ~40 ms
-    if (i == 9)
-    {  
+    if (i == 9) {  
         send_trigger();
         i = 0;
     }
@@ -277,7 +291,22 @@ ISR(TIMER1_COMPA_vect)
     ++distance_cm;
     
     if (distance_cm > 400)
-    {
         distance_cm = 400;
-    }
+}
+
+ISR(TIMER2_OVF_vect)
+{
+    static uint8_t number_of_overflows = 0;
+    
+     // Toggle LED(s) every ~500ms
+    if (number_of_overflows >= 31) {
+        if (valveIsOpen)
+            GPIO_toggle(&PORTB, led_red);
+        if (pumpIsOn)
+            GPIO_toggle(&PORTB, led_green);
+        
+        number_of_overflows = 0;
+    }        
+    
+    ++number_of_overflows;
 }

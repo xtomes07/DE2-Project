@@ -3,7 +3,7 @@
  * Water tank controller.
  * ATmega328P (Arduino Uno), 16 MHz, AVR 8-bit Toolchain 3.6.2
  *
- * Copyright (c) 2021 Czmelová Zuzana             
+ * Copyright (c) 2021 Czmelová Zuzana       
  * Copyright (c) 2021 Shelemba Pavlo
  * Copyright (c) 2021 Točený Ivo
  * Copyright (c) 2021 Tomešek Jiří
@@ -35,6 +35,7 @@
 #include <string.h>         // C library for string manipulations
 
 /* Variables ---------------------------------------------------------*/
+
 // Max water height in cm 
 uint16_t HEIGHT = 400;
 // Gap between sensor and max water height in cm
@@ -49,6 +50,62 @@ uint16_t DISTANCE = 0;
 uint8_t  valveIsOpen = 0;
 uint8_t  pumpIsOn    = 0;
 
+/* Symbols	----------------------------------------------------------*/
+uint16_t customChar[] = {
+	0B10001,	//tank is empty
+	0B10001,
+	0B10001,
+	0B10001,
+	0B10001,
+	0B10001,
+	0B11111,
+	0B11111,
+	
+	0B10001,	// 1/5 tank
+	0B10001,
+	0B10001,
+	0B10001,
+	0B10001,
+	0B11111,
+	0B11111,
+	0B11111,
+	
+	0B10001,	// 2/5 tank
+	0B10001,
+	0B10001,
+	0B10001,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	
+	0B10001,	// 3/5 tank
+	0B10001,
+	0B10001,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	
+	0B10001,	// 4/5 tank
+	0B10001,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	
+	0B10001,	// tank is full
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111,
+	0B11111
+};
 /* Function definitions ----------------------------------------------*/
 void send_trigger()
 {
@@ -144,16 +201,29 @@ int main(void)
     
     // Initialize LCD display
     lcd_init(LCD_DISP_ON);
+	
+	// Set pointer to beginning of CGRAM memory
+	lcd_command(1 << LCD_CGRAM);
+	for (uint8_t i = 0; i < 48; i++)
+	{
+		// Store all new chars to memory line by line
+		lcd_data(customChar[i]);
+	}
+	// Set DDRAM address
+	lcd_command(1 << LCD_DDRAM);
 
     // Put strings on LCD display
     lcd_gotoxy(0, 0);
     lcd_puts("LVL:");
     lcd_gotoxy(6, 0);
     lcd_puts("%");
+	lcd_gotoxy(10, 0);
+	lcd_putc(0);
     lcd_gotoxy(0, 1);
     lcd_puts("PMP:");
     lcd_gotoxy(9, 1);
     lcd_puts("VLV:CLS");
+
     
     // Any logical change on INT0 generates an interrupt request
     // The rising edge of INT1 generates an interrupt request
@@ -209,6 +279,9 @@ ISR(INT0_vect)
             
             lcd_gotoxy(8, 0);
             lcd_puts(" ");
+			
+			lcd_gotoxy(10, 0);
+			lcd_putc(5);
             
             if (!pumpIsOn)
                 GPIO_write_high(&PORTB, led_green);
@@ -220,6 +293,33 @@ ISR(INT0_vect)
             
             lcd_gotoxy(6, 0);
             lcd_puts("%  ");
+			
+			//custom char
+			if (volume > 0 && volume <= 20)
+			{
+				lcd_gotoxy(10, 0);
+				lcd_putc(1);
+			}
+			else if (volume > 20 && volume <= 40)
+			{
+				lcd_gotoxy(10, 0);
+				lcd_putc(2);
+			}
+			else if (volume > 40 && volume <= 60)
+			{
+				lcd_gotoxy(10, 0);
+				lcd_putc(3);
+			}
+			else if (volume > 60 && volume <= 80)
+			{
+				lcd_gotoxy(10, 0);
+				lcd_putc(4);
+			}
+			else if (volume > 80 && volume <= 100)
+			{
+				lcd_gotoxy(10, 0);
+				lcd_putc(5);
+			}
             
             if (!pumpIsOn)
                 GPIO_write_low(&PORTB, led_green);
@@ -240,6 +340,9 @@ ISR(INT0_vect)
         else {
             strcpy(lcd_str, "EMPTY");
             
+			lcd_gotoxy(10, 0);
+			lcd_putc(0);
+			
             if (!pumpIsOn)
                 GPIO_write_low(&PORTB, led_green);
             if (!valveIsOpen)

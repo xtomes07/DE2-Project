@@ -35,7 +35,17 @@
 #include <string.h>         // C library for string manipulations
 
 /* Variables ---------------------------------------------------------*/
-uint16_t distance_cm = 0;
+// Max water height in cm 
+uint16_t HEIGHT = 400;
+// Gap between sensor and max water height in cm
+uint16_t AIR    = 20;
+
+// Max water level before valve opens
+uint16_t MAX;
+
+// Measured distance in cm
+uint16_t DISTANCE = 0;
+// Booleans for electromechanics
 uint8_t  valveIsOpen = 0;
 uint8_t  pumpIsOn    = 0;
 
@@ -78,7 +88,7 @@ void pump_on()
     GPIO_write_high(&PORTC, relay);
     
     pumpIsOn = 1;
-    
+
     TIM2_overflow_16ms();
 }
 
@@ -88,7 +98,7 @@ void pump_off()
     GPIO_write_low(&PORTC, relay);
     
     pumpIsOn = 0;
-    
+
     if (!valveIsOpen)
         TIM2_stop();
 }
@@ -101,6 +111,10 @@ void pump_off()
  **********************************************************************/
 int main(void)
 {
+    AIR -= 1;
+    // Set max water level halfway between sensor and water
+    MAX = AIR / 2;
+    
     // Configure Trig PIN
     GPIO_config_output(&DDRD, trig);
     GPIO_write_low(&PORTD, trig);
@@ -159,7 +173,7 @@ int main(void)
     // 340 m/s sound wave propagates by 1 cm in ~58,8235 us
     // Empirical measurement suggests that 930 clocks of TIM1
     // with prescaler N=1 takes almost the same amount of time
-    // Set MAX TIM1 value to this value
+    // Set max TIM1 value to this clock number
     OCR1A = 930;
     // Enable Timer/Counter1 Output Compare A Match interrupt    
     TIMSK1 |= (1 << OCIE1A);
@@ -181,57 +195,63 @@ ISR(INT0_vect)
     // Change of state counter
     static uint8_t i = 0;
     // Water tank fill level 
-    static uint8_t volume = 0;
+    static uint16_t volume = 0;
     
     if (i) {
         // Disable counter
         TCCR1B |= 0;
-         
-        // Check tank fill level
-        if (distance_cm > 399) {
+        
+        // Calculate the volume of water in the tank in %
+        volume = 100 - ((DISTANCE - AIR) * 100 / HEIGHT);
+
+        if (volume > 99) {
+            strcpy(lcd_str, "FULL");
+            
+            lcd_gotoxy(8, 0);
+            lcd_puts(" ");
+            
+            if (!pumpIsOn)
+                GPIO_write_high(&PORTB, led_green);
+            if (!valveIsOpen)
+                GPIO_write_low(&PORTB, led_red);
+        }
+        else if (volume > 9) {
+            itoa(volume, lcd_str, 10);
+            
+            lcd_gotoxy(6, 0);
+            lcd_puts("%  ");
+            
+            if (!pumpIsOn)
+                GPIO_write_low(&PORTB, led_green);
+            if (!valveIsOpen)
+                GPIO_write_low(&PORTB, led_red);
+        }
+        else if (volume > 0) {
+            itoa(volume, lcd_str, 10);
+            
+            lcd_gotoxy(5, 0);
+            lcd_puts("%   ");
+            
+            if (!pumpIsOn)
+                GPIO_write_low(&PORTB, led_green);
+            if (!valveIsOpen)
+                GPIO_write_low(&PORTB, led_red);
+        }
+        else {
             strcpy(lcd_str, "EMPTY");
             
             if (!pumpIsOn)
                 GPIO_write_low(&PORTB, led_green);
             if (!valveIsOpen)
                 GPIO_write_high(&PORTB, led_red);
-        }      
-        else if (distance_cm < 40) {
-            lcd_gotoxy(8, 0);
-            lcd_puts(" ");
-            strcpy(lcd_str, "FULL");
-            
-            if (!pumpIsOn)
-                GPIO_write_high(&PORTB, led_green);
-            if (!valveIsOpen)
-                GPIO_write_low(&PORTB, led_red); 
-        }
-        else {
-            volume = 100 - distance_cm / 4;
-            
-            itoa(volume, lcd_str, 10);
-            
-            if (volume > 9) {
-                lcd_gotoxy(6, 0);
-                lcd_puts("%  ");
-            }
-            else {
-                lcd_gotoxy(5, 0);
-                lcd_puts("%   ");
-            }
-            
-            if (!pumpIsOn)
-                GPIO_write_low(&PORTB, led_green);
-            if (!valveIsOpen)
-                GPIO_write_low(&PORTB, led_red);
-        }            
+        } 
         
         // Put tank fill level on LCD  
         lcd_gotoxy(4, 0);
         lcd_puts(lcd_str);
         
-        // Check for water excess
-        if (distance_cm < 20 || GPIO_read(&PINC, btn_servo)) {
+        // Check for water excess (level is greater than max allowed value)
+        if (DISTANCE < MAX || GPIO_read(&PINC, btn_servo)) {
             if (!valveIsOpen)
                 open_valve();
 
@@ -245,8 +265,8 @@ ISR(INT0_vect)
             lcd_puts("CLS");
         }
             
-        // Check if pump is on
-        if (GPIO_read(&PINC, pump) && distance_cm > 40) {
+        // Check whether pump is on and water level is OK
+        if (DISTANCE > AIR && GPIO_read(&PINC, pump)) {
             pump_on();
             
             lcd_gotoxy(4, 1);
@@ -263,7 +283,7 @@ ISR(INT0_vect)
     }
     else {
         // Clear previous calculated distance before next measurement
-        distance_cm = 0;
+        DISTANCE = 0;
         
         // Start counting echo using 16-bit counter with prescaler N=1
         TIM1_overflow_4ms();  
@@ -282,16 +302,17 @@ ISR(TIMER0_OVF_vect)
     // Trigger ultrasonic sensor every ~40 ms
     if (i == 9) {  
         send_trigger();
+        
         i = 0;
-    }
+    }          
 }
 
 ISR(TIMER1_COMPA_vect)
 {
-    ++distance_cm;
+    ++DISTANCE;
     
-    if (distance_cm > 400)
-        distance_cm = 400;
+    if (DISTANCE >= HEIGHT + AIR)
+        TIM1_stop();
 }
 
 ISR(TIMER2_OVF_vect)

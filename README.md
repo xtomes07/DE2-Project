@@ -32,14 +32,15 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 ## Hardware description
 
 - Arduino UNO
-- HC-SR04
-- Hd44780
+- Ultrazvukový senzor HC-SR04
+- LCD displej Hd44780
 - Relé pro ovládání čerpadla
-- Servo motor
-- Čerpadlo
-- Dva přepínače
-- Zelená a červená LED dioda
+- Servo motor pro ovládání ventilu
+- Čerpadlo (v SimulID ho představuje DC motor)
+- Dva spínače pro ruční ovladání čerpadla a ventilu
+- Zelená a červená LED dioda pro pomocnou signalizaci
 
+K arduinu uno je přes piny D4 až D7, B1 a B0 připojený LCD displej Hd44780, na kterém se zobrazují aktuální informace o dění a stavu hladiny. Přes piny B6 a B7 jsou připojeny pomocné signalizační LED diody. Samotný senzor HC-SR04 je připojen přes piny D0 a D2. Na pinu D0 je připojen Trig a na D2 je připojen pin Echo. Spínač pro servo motor, který ovláda ventil, je na pinu C2 a spínač pro čerpadlo je na pinu C1. Ovladaní servo motoru je na pinu B2 a čerpadlo je ovladané přes relé, které je připojeno na pin C0.
 ### Zapojení obvodu:
 ![zapojení obvodu simulace](Images/simulacezapojeni.PNG)
 

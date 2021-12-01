@@ -25,13 +25,22 @@ https://github.com/xtomes07/DE2-Project
 
 ## Project objectives
 
-Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovládání nádrže s kontrolou vodní hladiny. Pro snímání vodní hladiny byl vybrán ultrazvukový senzo HC-SR04, díky kterému je možné přesně zjistit kolik vody je v nádrži na základě doby, za kterou ultrazvukový signál dorazí k vodní hladině a zpět k senzoru. V našem případě je velikost nádrže limitovaná senzorem, protože senzor pracuje se vzdáleností 2cm až 400cm. Jako příslušenství k nádrži byl zvolen ventil pro vypouštění a čerpadlo pro napouštění. K ventilu je připojen servo motor, který ventil ovládá. Ventil pracuje automaticky na základě vodní hladiny, když hrozí přetečení nádrže, ventil se automaticky otevře a odpustí vodu. Lze ho také ovládat manuálně pomocí tlačítka. Čerpadlo je ovládano pouze ručně přes tlačítko, které dáva signál arduinu a arduino na základě programu spíná relé, které spíná čerpadlo. Program zaroveň vyhodnocuje stav hladiny a v případě,že by hrozilo přetečení nádrže, tak čerpadlo automaticky vypne. Informace o stavu hladiny vody v nádrži, On/Off čepadla a Open/Close ventilu jsou zobrazovány na displaeji Hd44780.
+Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovládání nádrže s kontrolou vodní hladiny. Pro snímání vodní hladiny byl vybrán ultrazvukový senzor HC-SR04, díky kterému je možné přesně zjistit výšku hladiny vody v nádrži na základě doby, za kterou ultrazvukový signál dorazí k vodní hladině a zpět k senzoru. Stav hladainy se následně bude zobrazovat na dipleji Hd44780. Jako příslušenství k nádrži byl zvolen ventil pro vypouštění vody samospádem a čerpadlo pro napouštění. K ventilu bude připojen servo motor, který ventil ovládá. Ventil bude pracovat automaticky na základě vodní hladiny, když hrozí přetečení nádrže, ventil se automaticky otevře a odpustí vodu. Lze ho také ovládat manuálně pomocí tlačítka. Čerpadlo bude ovládano pouze ručně přes tlačítko, které dáva signál arduinu a arduino na základě programu spíná relé, které spíná čerpadlo. Program zároveň bude vyhodnocovat stav hladiny a v případě,že by při čerpání čerpadla hrozilo přetečení nádrže, tak čerpadlo automaticky vypne. Informace o stavu hladiny vody v nádrži pomocí procent, On/Off čepadla a Open/Close ventilu budou zobrazovány na displaeji Hd44780. K arduinu budou také připojeny dvě pomocné signalizační led diody. Zelená dioda bude svítit, když je nádrž plná vody a blikat když bude čerpadlo čerpat vodu do nádrže. Červená led dioda bude svítit, když je nádrž prázdná a svítit, když odpoštěcí ventil otevřený.
 
 <a name="hardware"></a>
 
 ## Hardware description
 
-Write your text here.
+- Arduino UNO
+- HC-SR04
+- Hd44780
+- Relé pro ovládání čerpadla
+- Servo motor
+- Čerpadlo
+- Dva přepínače
+- Zelená a červená LED dioda
+
+
 
 <a name="libs"></a>
 

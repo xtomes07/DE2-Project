@@ -47,16 +47,16 @@ uint16_t max_level;
 // Measured distance in cm
 uint16_t distance    = 0;
 // Water tank fill level
-uint16_t volume      = 0;
+uint8_t  volume      = 0;
 // Booleans for electromechanics
 uint8_t  valveIsOpen = 0;
 uint8_t  pumpIsOn    = 0;
 // Custom character number
 uint8_t char_num     = 0;
 
-/* Symbols	----------------------------------------------------------*/
+/* Symbols -----------------------------------------------------------*/
 uint16_t customChar[] = {
-    0B10001,	// Tank is empty
+    0B10001,    // Tank is empty
     0B10001,
     0B10001,
     0B10001,
@@ -65,7 +65,7 @@ uint16_t customChar[] = {
     0B11111,
     0B11111,
     
-    0B10001,	// 1/5 tank
+    0B10001,    // 1/5 tank
     0B10001,
     0B10001,
     0B10001,
@@ -74,7 +74,7 @@ uint16_t customChar[] = {
     0B11111,
     0B11111,
     
-    0B10001,	// 2/5 tank
+    0B10001,    // 2/5 tank
     0B10001,
     0B10001,
     0B10001,
@@ -83,7 +83,7 @@ uint16_t customChar[] = {
     0B11111,
     0B11111,
     
-    0B10001,	// 3/5 tank
+    0B10001,    // 3/5 tank
     0B10001,
     0B10001,
     0B11111,
@@ -101,7 +101,7 @@ uint16_t customChar[] = {
     0B11111,
     0B11111,
     
-    0B10001,	// Tank is full
+    0B10001,    // Tank is full
     0B11111,
     0B11111,
     0B11111,
@@ -219,7 +219,7 @@ int main(void)
     lcd_puts("LVL:");
     lcd_gotoxy(6, 0);
     lcd_puts("%");
-    lcd_gotoxy(12, 0);
+    lcd_gotoxy(10, 0);
     lcd_putc(char_num);
     lcd_gotoxy(0, 1);
     lcd_puts("PMP:");
@@ -260,8 +260,10 @@ int main(void)
 /* Interrupt service routines ----------------------------------------*/
 ISR(INT0_vect)
 {
-    // Strings for converting numbers
-    static char lcd_str[16];
+    // String for converting numbers
+    static char lcd_str[8];
+    // String for smiley
+    static char lcd_smiley[8];
     // Change of state counter
     static uint8_t i = 0;
     
@@ -273,10 +275,8 @@ ISR(INT0_vect)
         volume = 100 - ((distance - air_gap) * 100 / water_height);
 
         if (volume > 99) {
-            strcpy(lcd_str, "FULL");
-            
-            lcd_gotoxy(8, 0);
-            lcd_puts(" ");
+            strcpy(lcd_str, "FULL ");
+            strcpy(lcd_smiley, ":^)");
             
             char_num = 5;
             
@@ -287,6 +287,7 @@ ISR(INT0_vect)
         }
         else if (volume > 9) {
             itoa(volume, lcd_str, 10);
+            strcpy(lcd_smiley, ":^)");
             
             lcd_gotoxy(6, 0);
             lcd_puts("%  ");
@@ -309,6 +310,7 @@ ISR(INT0_vect)
         }
         else if (volume > 0) {
             itoa(volume, lcd_str, 10);
+            strcpy(lcd_smiley, ":^)");
             
             lcd_gotoxy(5, 0);
             lcd_puts("%   ");
@@ -320,6 +322,7 @@ ISR(INT0_vect)
         }
         else {
             strcpy(lcd_str, "EMPTY");
+            strcpy(lcd_smiley, ":^(");
             
             char_num = 0;
             
@@ -333,36 +336,33 @@ ISR(INT0_vect)
         lcd_gotoxy(4, 0);
         lcd_puts(lcd_str);
         // Put cute tank fill level icon on LCD
-        lcd_gotoxy(12, 0);
+        lcd_gotoxy(10, 0);
         lcd_putc(char_num);
+        // Put smiley on LCD
+        lcd_gotoxy(12, 0);
+        lcd_puts(lcd_smiley);
         
+        lcd_gotoxy(13, 1);
         // Check for water excess (level is greater than max allowed value)
         if (distance < max_level || GPIO_read(&PINC, SW_SERVO)) {
+            lcd_puts("OPN");
             if (!valveIsOpen)
                 open_valve();
-
-            lcd_gotoxy(13, 1);
-            lcd_puts("OPN");
         }
         else if (valveIsOpen) {
-            close_valve();
-            
-            lcd_gotoxy(13, 1);
             lcd_puts("CLS");
+            close_valve();
         }
-            
+        
+        lcd_gotoxy(4, 1); 
         // Check whether pump is on and water level is OK
         if (distance > air_gap && GPIO_read(&PINC, SW_PUMP)) {
-            pump_on();
-            
-            lcd_gotoxy(4, 1);
             lcd_puts("ON ");
+            pump_on();
         } 
         else {
-            pump_off();
-            
-            lcd_gotoxy(4, 1);
             lcd_puts("OFF");
+            pump_off();
         }            
         
         i = 0;
@@ -404,18 +404,16 @@ ISR(TIMER1_COMPA_vect)
 ISR(TIMER2_OVF_vect)
 {
     static uint8_t number_of_overflows = 0;
-    
+
     // Toggle LED(s) every ~500ms
     if (number_of_overflows >= 31) {
-        if (valveIsOpen) {
-            GPIO_toggle(&PORTB, LED_R);
-        }            
-        if (pumpIsOn) {
+        if (valveIsOpen)
+            GPIO_toggle(&PORTB, LED_R);        
+        if (pumpIsOn)
             GPIO_toggle(&PORTB, LED_G);
-        }
-                
+
         number_of_overflows = 0;
-    }        
-    
+    }
+
     ++number_of_overflows;
 }

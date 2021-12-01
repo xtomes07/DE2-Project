@@ -56,59 +56,59 @@ uint8_t char_num     = 0;
 
 /* Symbols	----------------------------------------------------------*/
 uint16_t customChar[] = {
-	0B10001,	// Tank is empty
-	0B10001,
-	0B10001,
-	0B10001,
-	0B10001,
-	0B10001,
-	0B11111,
-	0B11111,
-	
-	0B10001,	// 1/5 tank
-	0B10001,
-	0B10001,
-	0B10001,
-	0B10001,
-	0B11111,
-	0B11111,
-	0B11111,
-	
-	0B10001,	// 2/5 tank
-	0B10001,
-	0B10001,
-	0B10001,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	
-	0B10001,	// 3/5 tank
-	0B10001,
-	0B10001,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	
-	0B10001,	// 4/5 tank
-	0B10001,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	
-	0B10001,	// Tank is full
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111,
-	0B11111
+    0B10001,	// Tank is empty
+    0B10001,
+    0B10001,
+    0B10001,
+    0B10001,
+    0B10001,
+    0B11111,
+    0B11111,
+    
+    0B10001,	// 1/5 tank
+    0B10001,
+    0B10001,
+    0B10001,
+    0B10001,
+    0B11111,
+    0B11111,
+    0B11111,
+    
+    0B10001,	// 2/5 tank
+    0B10001,
+    0B10001,
+    0B10001,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    
+    0B10001,	// 3/5 tank
+    0B10001,
+    0B10001,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    
+    0B10001,	// 4/5 tank
+    0B10001,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    
+    0B10001,	// Tank is full
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111,
+    0B11111
 };
 /* Function definitions ----------------------------------------------*/
 void send_trigger()
@@ -204,23 +204,23 @@ int main(void)
     
     // Initialize LCD display
     lcd_init(LCD_DISP_ON);
-	
-	// Set pointer to beginning of CGRAM memory
-	lcd_command(1 << LCD_CGRAM);
+    
+    // Set pointer to beginning of CGRAM memory
+    lcd_command(1 << LCD_CGRAM);
     // Store all new chars to memory line by line
-	for (uint8_t i = 0; i < 48; i++)
-		lcd_data(customChar[i]);
+    for (uint8_t i = 0; i < 48; i++)
+        lcd_data(customChar[i]);
         
-	// Set DDRAM address
-	lcd_command(1 << LCD_DDRAM);
+    // Set DDRAM address
+    lcd_command(1 << LCD_DDRAM);
 
     // Put strings on LCD display
     lcd_gotoxy(0, 0);
     lcd_puts("LVL:");
     lcd_gotoxy(6, 0);
     lcd_puts("%");
-	lcd_gotoxy(12, 0);
-	lcd_putc(char_num);
+    lcd_gotoxy(12, 0);
+    lcd_putc(char_num);
     lcd_gotoxy(0, 1);
     lcd_puts("PMP:");
     lcd_gotoxy(9, 1);
@@ -277,8 +277,8 @@ ISR(INT0_vect)
             
             lcd_gotoxy(8, 0);
             lcd_puts(" ");
-			
-			char_num = 5;
+            
+            char_num = 5;
             
             if (!pumpIsOn)
                 GPIO_write_high(&PORTB, LED_G);
@@ -290,20 +290,17 @@ ISR(INT0_vect)
             
             lcd_gotoxy(6, 0);
             lcd_puts("%  ");
-			
-			// Water level icon
-            lcd_gotoxy(12, 0);
             
-			if (volume > 80)
-				char_num = 5;
-			else if (volume > 60)
-				char_num = 4;
-			else if (volume > 40)
-				char_num = 3;
-			else if (volume > 20)
-				char_num = 2;
-			else
-				char_num = 1;
+            if (volume > 80)
+                char_num = 5;
+            else if (volume > 60)
+                char_num = 4;
+            else if (volume > 40)
+                char_num = 3;
+            else if (volume > 20)
+                char_num = 2;
+            else
+                char_num = 1;
             
             if (!pumpIsOn)
                 GPIO_write_low(&PORTB, LED_G);
@@ -324,18 +321,18 @@ ISR(INT0_vect)
         else {
             strcpy(lcd_str, "EMPTY");
             
-			char_num = 0;
-			
+            char_num = 0;
+            
             if (!pumpIsOn)
                 GPIO_write_low(&PORTB, LED_G);
             if (!valveIsOpen)
                 GPIO_write_high(&PORTB, LED_R);
         } 
         
-        // Put tank fill level on LCD  
+        // Put tank fill level in % on LCD  
         lcd_gotoxy(4, 0);
         lcd_puts(lcd_str);
-        // Put cute tank fill icon on LCD  
+        // Put cute tank fill level icon on LCD
         lcd_gotoxy(12, 0);
         lcd_putc(char_num);
         

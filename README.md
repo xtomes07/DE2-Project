@@ -48,6 +48,8 @@ K arduinu uno je přes piny D4 až D7, B1 a B0 připojený LCD displej Hd44780, 
 
 ## Libraries description
 
+Pro ovladaní displeje byly pouzity knihovny LCD.C, LCD.H a LCD_DEFINITION.H. Pro vstupní a výstupní obvody knihovny GPIO.C a GPIO.H. Pro ovladání časovače byla použita hnikovna TIMER.H. Všechny tyto knihovny byly vytvořeny v hodinách DE2.
+
 [GPIO.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.c)
 
 [GPIO.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.h)
@@ -70,7 +72,7 @@ Write your text here.
 
 ## Video
 
-Write your text here
+![video](https://www.youtube.com/watch?v=sDZL-BgPtco)
 
 <a name="references"></a>
 

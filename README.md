@@ -40,7 +40,8 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 - Dva přepínače
 - Zelená a červená LED dioda
 
-
+### Zapojení obvodu:
+![zapojení obvodu simulace](Images/simulacezapojeni.png)
 
 <a name="libs"></a>
 

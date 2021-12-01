@@ -41,7 +41,7 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 - Zelená a červená LED dioda
 
 ### Zapojení obvodu:
-![zapojení obvodu simulace](Images/simulacezapojeni.png)
+![zapojení obvodu simulace](Images/simulacezapojeni.PNG)
 
 <a name="libs"></a>
 

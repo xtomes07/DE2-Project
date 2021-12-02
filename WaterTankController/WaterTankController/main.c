@@ -3,10 +3,9 @@
  * Water tank controller.
  * ATmega328P (Arduino Uno), 16 MHz, AVR 8-bit Toolchain 3.6.2
  *
- * Copyright (c) 2021 Czmelová Zuzana       
  * Copyright (c) 2021 Shelemba Pavlo
- * Copyright (c) 2021 Točený Ivo
  * Copyright (c) 2021 Tomešek Jiří
+ * Copyright (c) 2021 Točený Ivo
  * This work is licensed under the terms of the MIT license
  * 
  **********************************************************************/
@@ -25,17 +24,17 @@
 #endif
 
 /* Includes ----------------------------------------------------------*/
-#include <avr/io.h>         // AVR device-specific IO definitions
 #include <avr/interrupt.h>  // Interrupts standard C library for AVR-GCC
-#include <util/delay.h>     // Busy-wait delay loops
-#include "timer.h"          // Timer library for AVR-GCC
-#include "lcd.h"            // Peter Fleury's LCD library
-#include "gpio.h"           // GPIO library for AVR-GCC
+#include <avr/io.h>         // AVR device-specific IO definitions
 #include <stdlib.h>         // C library for conversion function
 #include <string.h>         // C library for string manipulations
+#include <util/delay.h>     // Busy-wait delay loops
+#include "gpio.h"           // GPIO library for AVR-GCC
+#include "lcd.h"            // Peter Fleury's LCD library
+#include "timer.h"          // Timer library for AVR-GCC
+#include "ultrasonic.h"     // Ultrasonic sensor library for AVR-GCC
 
 /* Variables ---------------------------------------------------------*/
-
 // Max water height in cm 
 uint16_t water_height = 400;
 // Gap between sensor and max water height in cm
@@ -111,13 +110,6 @@ uint16_t customChar[] = {
     0B11111
 };
 /* Function definitions ----------------------------------------------*/
-void send_trigger()
-{
-    GPIO_write_high(&PORTD, TRIG);
-    _delay_us(10);
-    GPIO_write_low(&PORTD, TRIG);
-}
-
 void open_valve()
 {
     GPIO_write_high(&PORTB, SERVO);
@@ -226,32 +218,18 @@ int main(void)
     lcd_gotoxy(9, 1);
     lcd_puts("VLV:CLS");
 
-    // Any logical change on INT0 generates an interrupt request
-    EICRA |= (1 << ISC00); 
-    // Not strictly necessary, as register default values are already 0
-    EICRA &= ~((1 << ISC01) | (1 << ISC11) | (1 << ISC10)); 
-    // External Interrupt Request Enable
-    EIMSK |= (1 << INT0); EIMSK  &= ~(1 << INT1);
-    
+    ultrasonic_init(0);
+
     // Overflow timer for trigger signal
     TIM0_overflow_4ms();
     TIM0_overflow_interrupt_enable();
     
     // Set overflow flag for LED timer
     TIM2_overflow_interrupt_enable();
-
-    // 340 m/s sound wave propagates by 1 cm in ~58,8235 us
-    // Empirical measurement suggests that 930 clocks of TIM1
-    // with prescaler N=1 takes almost the same amount of time
-    // Set max TIM1 value to this clock number
-    OCR1A = 930;
-    // Enable Timer/Counter1 Output Compare A Match interrupt    
-    TIMSK1 |= (1 << OCIE1A);
     
     // Enables interrupts by setting the global interrupt mask
     sei();
 
-    // Infinite loop
     while (1) {}
 
     return 0;
@@ -387,8 +365,8 @@ ISR(TIMER0_OVF_vect)
     
     // Trigger ultrasonic sensor every ~40 ms
     if (i == 9) {  
-        send_trigger();
-        
+        ultrasonic_trig(&PORTD, TRIG);
+
         i = 0;
     }          
 }

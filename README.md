@@ -32,21 +32,35 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 ## Hardware description
 
 - Arduino UNO
-- HC-SR04
-- Hd44780
+- Ultrazvukový senzor HC-SR04
+- LCD displej Hd44780
 - Relé pro ovládání čerpadla
-- Servo motor
-- Čerpadlo
-- Dva přepínače
-- Zelená a červená LED dioda
+- Servo motor pro ovládání ventilu
+- Čerpadlo (v SimulID ho představuje DC motor)
+- Dva spínače pro ruční ovladání čerpadla a ventilu
+- Zelená a červená LED dioda pro pomocnou signalizaci
 
-
+K arduinu uno je přes piny D4 až D7, B1 a B0 připojený LCD displej Hd44780, na kterém se zobrazují aktuální informace o dění a stavu hladiny. Přes piny B6 a B7 jsou připojeny pomocné signalizační LED diody. Samotný senzor HC-SR04 je připojen přes piny D0 a D2. Na pinu D0 je připojen Trig a na D2 je připojen pin Echo. Spínač pro servo motor, který ovláda ventil, je na pinu C2 a spínač pro čerpadlo je na pinu C1. Ovladaní servo motoru je na pinu B2 a čerpadlo je ovladané přes relé, které je připojeno na pin C0.
+### Zapojení obvodu:
+![zapojení obvodu simulace](Images/simulacezapojeni.PNG)
 
 <a name="libs"></a>
 
 ## Libraries description
 
-Write your text here.
+Pro ovladaní displeje byly pouzity knihovny LCD.C, LCD.H a LCD_DEFINITION.H. Pro vstupní a výstupní obvody knihovny GPIO.C a GPIO.H. Pro ovladání časovače byla použita hnikovna TIMER.H. Všechny tyto knihovny byly vytvořeny v hodinách DE2.
+
+[GPIO.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.c)
+
+[GPIO.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.h)
+
+[LCD.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd.c)
+
+[LCD.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd.h)
+
+[LCD_DEFINITIONS.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd_definitions.h)
+
+[TIMER.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/timer.h)
 
 <a name="main"></a>
 
@@ -58,7 +72,7 @@ Write your text here.
 
 ## Video
 
-Write your text here
+![video](https://www.youtube.com/watch?v=sDZL-BgPtco)
 
 <a name="references"></a>
 

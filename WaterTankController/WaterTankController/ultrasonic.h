@@ -29,6 +29,8 @@
  */
 
 /* Defines -----------------------------------------------------------*/
+#define INT0_PIN    PD2     // External interrupt 0 pin on ATmega328P
+#define INT1_PIN    PD3     // External interrupt 1 pin on ATmega328P
 #ifndef F_CPU
 #define F_CPU 16000000UL    // CPU frequency in Hz for delay.h
 #endif
@@ -43,12 +45,14 @@
  */
 
 /**
- * @brief  Configure pin and timer/counter 1 for use with HC-SR04.
- * @param  pin 0 if sensor is connected to INT0;
- *             1 if sensor is connected to INT1.
+ * @brief  Configure pin and Timer/Counter1 for use with HC-SR04.
+ * @param  trig_reg Address of Data Direction Register, such as &DDRB
+ * @param  trig_pin Pin designation in the interval 0 to 7
+ * @param  echo_reg Address of Data Direction Register, such as &DDRB
+ * @param  echo_pin Pin designation, should handle either INT0 or INT1
  * @return none
  */
-void ultrasonic_init(uint8_t pin);
+void ultrasonic_init(volatile uint8_t *trig_reg, uint8_t trig_pin, volatile uint8_t *echo_reg, uint8_t echo_pin);
 
 /**
  * @brief  Trigger ultrasonic sensor by sending 10us pulse.
@@ -57,6 +61,20 @@ void ultrasonic_init(uint8_t pin);
  * @return none
  */
 void ultrasonic_trig(volatile uint8_t *reg_name, uint8_t pin_num);
+
+/**
+ * @brief  Start Timer/Counter1.
+ * @param  none
+ * @return none
+ */
+void ultrasonic_start_TIM1();
+
+/**
+ * @brief  Stop Timer/Counter1.
+ * @param  none
+ * @return none
+ */
+void ultrasonic_stop_TIM1();
 
 /** @} */
 

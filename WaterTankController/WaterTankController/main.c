@@ -31,6 +31,7 @@
 #include <util/delay.h>     // Busy-wait delay loops
 #include "gpio.h"           // GPIO library for AVR-GCC
 #include "lcd.h"            // Peter Fleury's LCD library
+#include "symbols.h"        // Custom characters for HD44780 LCD
 #include "timer.h"          // Timer library for AVR-GCC
 #include "ultrasonic.h"     // Ultrasonic sensor library for AVR-GCC
 
@@ -53,62 +54,6 @@ uint8_t  pumpIsOn    = 0;
 // Custom character number
 uint8_t char_num     = 0;
 
-/* Symbols -----------------------------------------------------------*/
-uint16_t customChar[] = {
-    0B10001,    // Tank is empty
-    0B10001,
-    0B10001,
-    0B10001,
-    0B10001,
-    0B10001,
-    0B11111,
-    0B11111,
-    
-    0B10001,    // 1/5 tank
-    0B10001,
-    0B10001,
-    0B10001,
-    0B10001,
-    0B11111,
-    0B11111,
-    0B11111,
-    
-    0B10001,    // 2/5 tank
-    0B10001,
-    0B10001,
-    0B10001,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    
-    0B10001,    // 3/5 tank
-    0B10001,
-    0B10001,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    
-    0B10001,	// 4/5 tank
-    0B10001,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    
-    0B10001,    // Tank is full
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111,
-    0B11111
-};
 /* Function definitions ----------------------------------------------*/
 void open_valve()
 {
@@ -166,29 +111,25 @@ int main(void)
 {
     // Set max water level halfway between sensor and water
     max_level = air_gap / 2;
-    
-    // Configure Trig PIN
-    GPIO_config_output(&DDRD, TRIG);
-    GPIO_write_low(&PORTD, TRIG);
-    
-    // Configure Echo PIN
-    GPIO_config_input_pullup(&DDRD, ECHO);
-    
-    // Configure Control Pump PIN
+
+    // Initialize ultrasonic sensor
+    ultrasonic_init(&DDRD, TRIG, &DDRD, ECHO);
+
+    // Configure Control Pump pin
     GPIO_config_input_nopull(&DDRC, SW_PUMP);
     
-    // Configure Relay Pump PIN
+    // Configure Relay Pump pin
     GPIO_config_output(&DDRC, RELAY);
     GPIO_write_low(&PORTC, RELAY);
     
-    // Configure Servo PIN
+    // Configure Servo pin
     GPIO_config_output(&DDRB, SERVO);
     GPIO_write_low(&PORTB, SERVO);
     
-    // Configure Control Servo PIN
+    // Configure Control Servo pin
     GPIO_config_input_nopull(&DDRC, SW_SERVO);
     
-    // Configure LED PINs
+    // Configure LED pins
     GPIO_config_output(&DDRB, LED_G);
     GPIO_write_low(&PORTB, LED_G);
     GPIO_config_output(&DDRB, LED_R);
@@ -196,13 +137,11 @@ int main(void)
     
     // Initialize LCD display
     lcd_init(LCD_DISP_ON);
-    
     // Set pointer to beginning of CGRAM memory
     lcd_command(1 << LCD_CGRAM);
     // Store all new chars to memory line by line
     for (uint8_t i = 0; i < 48; i++)
         lcd_data(customChar[i]);
-        
     // Set DDRAM address
     lcd_command(1 << LCD_DDRAM);
 
@@ -217,8 +156,6 @@ int main(void)
     lcd_puts("PMP:");
     lcd_gotoxy(9, 1);
     lcd_puts("VLV:CLS");
-
-    ultrasonic_init(0);
 
     // Overflow timer for trigger signal
     TIM0_overflow_4ms();
@@ -246,8 +183,8 @@ ISR(INT0_vect)
     static uint8_t i = 0;
     
     if (i) {
-        // Disable counter
-        TCCR1B |= 0;
+        // Stop counting echo
+        ultrasonic_stop_TIM1();
         
         // Calculate the volume of water in the tank in %
         volume = 100 - ((distance - air_gap) * 100 / water_height);
@@ -349,10 +286,8 @@ ISR(INT0_vect)
         // Clear previous calculated distance before next measurement
         distance = 0;
         
-        // Start counting echo using 16-bit counter with prescaler N=1
-        TIM1_overflow_4ms();  
-        // Enable TIM1 CTC mode   
-        TCCR1B |= (1 << WGM12);
+        // Start counting echo
+        ultrasonic_start_TIM1();  
         
         i = 1;
     }

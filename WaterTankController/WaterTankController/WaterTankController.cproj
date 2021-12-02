@@ -138,6 +138,9 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="symbols.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="timer.h">
       <SubType>compile</SubType>
     </Compile>

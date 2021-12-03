@@ -152,9 +152,7 @@ int main(void)
     // Put strings on LCD display
     lcd_gotoxy(0, 0);
     lcd_puts("LVL:");
-    lcd_gotoxy(6, 0);
-    lcd_puts("%");
-    lcd_gotoxy(10, 0);
+    lcd_gotoxy(15, 0);
     lcd_putc(char_num);
     lcd_gotoxy(0, 1);
     lcd_puts("PMP:");
@@ -180,7 +178,7 @@ int main(void)
 ISR(INT0_vect)
 {
     // String for converting numbers
-    static char lcd_str[8];
+    static char lcd_str[16];
     // String for smiley
     static char lcd_smiley[8];
     // State counter
@@ -201,9 +199,15 @@ ISR(INT0_vect)
         volume = 100 - ((distance - air_gap) * 100 / water_height);
 
         if (volume > 99) {
-            strcpy(lcd_str, "FULL ");
-            strcpy(lcd_smiley, ":^)");
-            
+            if (distance < max_level) {
+                strcpy(lcd_str, "OVERFLOW");
+                strcpy(lcd_smiley, ":^(");
+            }
+            else {
+                strcpy(lcd_str, "FULL    ");
+                strcpy(lcd_smiley, ":^)");
+            }
+
             char_num = 5;
         
             if (!pumpIsOn)
@@ -216,8 +220,8 @@ ISR(INT0_vect)
             strcpy(lcd_smiley, ":^)");
             
             lcd_gotoxy(6, 0);
-            lcd_puts("%  ");
-            
+            lcd_puts("%     ");
+
             if (volume > 80)
                 char_num = 5;
             else if (volume > 60)
@@ -239,15 +243,17 @@ ISR(INT0_vect)
             strcpy(lcd_smiley, ":^)");
         
             lcd_gotoxy(5, 0);
-            lcd_puts("%   ");
+            lcd_puts("%      ");
             
+            char_num = 1;
+        
             if (!pumpIsOn)
                 GPIO_write_low(&PORTB, LED_G);
             if (!valveIsOpen)
                 GPIO_write_low(&PORTB, LED_R);
         }
         else {
-            strcpy(lcd_str, "EMPTY");
+            strcpy(lcd_str, "EMPTY   ");
             strcpy(lcd_smiley, ":^(");
         
             char_num = 0;
@@ -256,50 +262,44 @@ ISR(INT0_vect)
                 GPIO_write_low(&PORTB, LED_G);
             if (!valveIsOpen)
                 GPIO_write_high(&PORTB, LED_R);
-        } 
-        
-        // Put tank fill level in % on LCD  
-        lcd_gotoxy(4, 0);
-        lcd_puts(lcd_str);
-        // Put cute tank fill level icon on LCD
-        lcd_gotoxy(10, 0);
-        lcd_putc(char_num);
-        // Put smiley on LCD
-        lcd_gotoxy(12, 0);
-        lcd_puts(lcd_smiley);
-        
-        lcd_gotoxy(13, 1);
+        }
+
         // Check for water excess (level is greater than max allowed value)
+        // or if valve switch is on
         if (distance < max_level || GPIO_read(&PINC, SW_SERVO)) {
+            lcd_gotoxy(13, 1);
             lcd_puts("OPN");
             if (!valveIsOpen)
                 open_valve();
         }
         else if (valveIsOpen) {
+            lcd_gotoxy(13, 1);
             lcd_puts("CLS");
             close_valve();
         }
         
-        lcd_gotoxy(4, 1); 
-        // Check whether pump is on and water level is OK
+        // Check whether pump is on and whether water level is OK
         if (distance > air_gap && GPIO_read(&PINC, SW_PUMP)) {
+            lcd_gotoxy(4, 1);
             lcd_puts("ON ");
             pump_on();
         }
         else {
+            lcd_gotoxy(4, 1);
             lcd_puts("OFF");
             pump_off();
-        }            
+        }
         
-        i = 0;
-    }
-    else {
-        // Clear previous calculated distance before next measurement
-        distance = 0;
-        
-        // Start counting echo
-        ultrasonic_start_TIM1();  
-        
+        // Put tank fill level in % on LCD
+        lcd_gotoxy(4, 0);
+        lcd_puts(lcd_str);
+        // Put cute tank fill level icon on LCD
+        lcd_gotoxy(15, 0);
+        lcd_putc(char_num);
+        // Put smiley on LCD
+        lcd_gotoxy(12, 0);
+        lcd_puts(lcd_smiley);
+    
         i = 1;
     }
 }

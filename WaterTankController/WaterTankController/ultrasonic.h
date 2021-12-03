@@ -29,15 +29,22 @@
  */
 
 /* Defines -----------------------------------------------------------*/
-#define INT0_PIN    PD2     // External interrupt 0 pin on ATmega328P
-#define INT1_PIN    PD3     // External interrupt 1 pin on ATmega328P
+#define PIN_INT0    PIND2   // External interrupt 0 pin on ATmega328P
+#define PIN_INT1    PIND3   // External interrupt 1 pin on ATmega328P
 #ifndef F_CPU
 #define F_CPU 16000000UL    // CPU frequency in Hz for delay.h
 #endif
 
 /* Includes ----------------------------------------------------------*/
-#include <avr/io.h>
-#include <util/delay.h>
+#include <avr/interrupt.h>  // Interrupts standard C library for AVR-GCC
+#include <avr/io.h>         // AVR device-specific IO definitions
+#include <util/delay.h>     // Busy-wait delay loops
+
+/* Variables ---------------------------------------------------------*/
+// Measured distance in cm
+uint16_t distance;
+// Incoming echo pin
+uint8_t  signal_pin;
 
 /* Function prototypes -----------------------------------------------*/
 /**
@@ -46,10 +53,11 @@
 
 /**
  * @brief  Configure pin and Timer/Counter1 for use with HC-SR04.
- * @param  trig_reg Address of Data Direction Register, such as &DDRB
- * @param  trig_pin Pin designation in the interval 0 to 7
- * @param  echo_reg Address of Data Direction Register, such as &DDRB
- * @param  echo_pin Pin designation, should handle either INT0 or INT1
+ * @param  trig_reg Address of Data Direction Register, such as &DDRB.
+ * @param  trig_pin Trigger pin designation in the interval 0 to 7.
+ * @param  echo_reg Address of Data Direction Register, such as &DDRB.
+ * @param  echo_pin Incoming signal pin designation in the interval
+ *                  0 to 7.
  * @return none
  */
 void ultrasonic_init(volatile uint8_t *trig_reg, uint8_t trig_pin, volatile uint8_t *echo_reg, uint8_t echo_pin);
@@ -57,24 +65,31 @@ void ultrasonic_init(volatile uint8_t *trig_reg, uint8_t trig_pin, volatile uint
 /**
  * @brief  Trigger ultrasonic sensor by sending 10us pulse.
  * @param  reg_name Address of Port Register, such as &PORTB.
- * @param  pin_num  Pin connected to trigger input of HC-SR04.
+ *         pin_num  Pin connected to trigger input of HC-SR04.
  * @return none
  */
-void ultrasonic_trig(volatile uint8_t *reg_name, uint8_t pin_num);
+void ultrasonic_trigger(volatile uint8_t *reg_name, uint8_t pin_num);
 
 /**
  * @brief  Start Timer/Counter1.
  * @param  none
  * @return none
  */
-void ultrasonic_start_TIM1();
+void ultrasonic_start_measuring();
 
 /**
  * @brief  Stop Timer/Counter1.
  * @param  none
  * @return none
  */
-void ultrasonic_stop_TIM1();
+void ultrasonic_stop_measuring();
+
+/**
+ * @brief  Stop measurement and get measured distance.
+ * @param  none
+ * @return Distance in cm
+ */
+uint16_t ultrasonic_get_distance();
 
 /** @} */
 

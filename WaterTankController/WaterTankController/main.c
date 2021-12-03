@@ -40,12 +40,14 @@
 uint16_t water_height = 400;
 // Gap between sensor and max water height in cm
 uint16_t air_gap      = 20;
+// Total height of the system
+uint16_t total_height;
 
+// Measured distance in cm
+uint16_t distance;
 // Max water level before valve opens
 uint16_t max_level;
 
-// Measured distance in cm
-uint16_t distance    = 0;
 // Water tank fill level
 uint8_t  volume      = 0;
 // Booleans for electromechanics
@@ -109,8 +111,10 @@ void pump_off()
  **********************************************************************/
 int main(void)
 {
-    // Set max water level halfway between sensor and water
+    // Set max water level halfway between sensor and max water level
     max_level = air_gap / 2;
+
+    total_height = water_height + air_gap;
 
     // Initialize ultrasonic sensor
     ultrasonic_init(&DDRD, TRIG, &DDRD, ECHO);
@@ -179,13 +183,20 @@ ISR(INT0_vect)
     static char lcd_str[8];
     // String for smiley
     static char lcd_smiley[8];
-    // Change of state counter
-    static uint8_t i = 0;
+    // State counter
+    static uint8_t i = 1;
     
     if (i) {
-        // Stop counting echo
-        ultrasonic_stop_TIM1();
+        // Begin measuring echo signal
+        ultrasonic_start_measuring();  
         
+        i = 0;
+    }
+    else {
+        // Capture measured distance
+        if ((distance = ultrasonic_get_distance()) > total_height)
+            distance = total_height;
+
         // Calculate the volume of water in the tank in %
         volume = 100 - ((distance - air_gap) * 100 / water_height);
 
@@ -194,13 +205,13 @@ ISR(INT0_vect)
             strcpy(lcd_smiley, ":^)");
             
             char_num = 5;
-            
+        
             if (!pumpIsOn)
                 GPIO_write_high(&PORTB, LED_G);
             if (!valveIsOpen)
                 GPIO_write_low(&PORTB, LED_R);
         }
-        else if (volume > 9) {
+        else if (volume > 9) {       
             itoa(volume, lcd_str, 10);
             strcpy(lcd_smiley, ":^)");
             
@@ -226,7 +237,7 @@ ISR(INT0_vect)
         else if (volume > 0) {
             itoa(volume, lcd_str, 10);
             strcpy(lcd_smiley, ":^)");
-            
+        
             lcd_gotoxy(5, 0);
             lcd_puts("%   ");
             
@@ -238,9 +249,9 @@ ISR(INT0_vect)
         else {
             strcpy(lcd_str, "EMPTY");
             strcpy(lcd_smiley, ":^(");
-            
+        
             char_num = 0;
-            
+        
             if (!pumpIsOn)
                 GPIO_write_low(&PORTB, LED_G);
             if (!valveIsOpen)
@@ -274,7 +285,7 @@ ISR(INT0_vect)
         if (distance > air_gap && GPIO_read(&PINC, SW_PUMP)) {
             lcd_puts("ON ");
             pump_on();
-        } 
+        }
         else {
             lcd_puts("OFF");
             pump_off();
@@ -300,18 +311,10 @@ ISR(TIMER0_OVF_vect)
     
     // Trigger ultrasonic sensor every ~40 ms
     if (i == 9) {  
-        ultrasonic_trig(&PORTD, TRIG);
+        ultrasonic_trigger(&PORTD, TRIG);
 
         i = 0;
     }          
-}
-
-ISR(TIMER1_COMPA_vect)
-{
-    ++distance;
-    
-    if (distance >= water_height + air_gap)
-        TIM1_stop();
 }
 
 ISR(TIMER2_OVF_vect)
@@ -330,3 +333,4 @@ ISR(TIMER2_OVF_vect)
 
     ++number_of_overflows;
 }
+ 

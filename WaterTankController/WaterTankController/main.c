@@ -13,7 +13,7 @@
 /* Defines -----------------------------------------------------------*/
 #define TRIG       PD0    // Trigger Pin
 #define ECHO       PD2    // Echo Pin
-#define SERVO      PB2    // Servo valve pin
+#define SERVO      PB4    // Servo valve pin
 #define LED_G      PB6    // Servo valve pin
 #define LED_R      PB7    // Servo valve pin
 #define RELAY      PC0    // Pin for pump relay control 

@@ -43,7 +43,7 @@
 /* Variables ---------------------------------------------------------*/
 // Measured distance in cm
 uint16_t distance;
-// Incoming echo pin
+// Incoming echo signal pin
 uint8_t  signal_pin;
 
 /* Function prototypes -----------------------------------------------*/

@@ -14,7 +14,7 @@
 /* Function definitions ----------------------------------------------*/
 /**********************************************************************
  * Function: ultrasonic_init()
- * Purpose:  Configure pin and timer/counter 1 for use with HC-SR04
+ * Purpose:  Configure pin and Timer/Counter1 for use with HC-SR04
  * Input:    trig_reg Address of Data Direction Register, such as &DDRB
  *           trig_pin Trigger pin designation in the interval 0 to 7
  *           echo_reg Address of Data Direction Register, such as &DDRB
@@ -25,19 +25,21 @@
 void ultrasonic_init(volatile uint8_t *trig_reg, uint8_t trig_pin, volatile uint8_t *echo_reg, uint8_t echo_pin)
 {
     signal_pin = echo_pin;
-    
-    // Configure Trig pin as output
+
+    // Configure trigger pin Data Direction Register as output
     *trig_reg |= (1<<trig_pin);
-    // Set pin low
+    // Move pointer to address of Port Register
     ++trig_reg;
+    // Drive port pin low
     *trig_reg &= ~(1<<trig_pin);
-    
-    // Configure Echo pin as input 
+
+    // Configure echo signal pin Data Direction Register as input
     *echo_reg &= ~(1<<signal_pin);
-    // Enable pull-up resistor
+    // Move pointer to address of Port Register
     ++echo_reg;
+    // Enable pull-up resistor
     *echo_reg |= (1<<signal_pin);
-    
+    // Move pointer back to address of Data Direction Register
     --echo_reg;
     
     if (*echo_reg == DDRB) {

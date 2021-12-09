@@ -119,18 +119,18 @@ int main(void)
     // Initialize ultrasonic sensor
     ultrasonic_init(&DDRD, TRIG, &DDRD, ECHO);
 
-    // Configure Control Pump pin
+    // Configure Pump Control pin
     GPIO_config_input_nopull(&DDRC, SW_PUMP);
-    
-    // Configure Relay Pump pin
+
+    // Configure Pump Relay pin
     GPIO_config_output(&DDRC, RELAY);
     GPIO_write_low(&PORTC, RELAY);
     
     // Configure Servo pin
     GPIO_config_output(&DDRB, SERVO);
     GPIO_write_low(&PORTB, SERVO);
-    
-    // Configure Control Servo pin
+
+    // Configure Servo Control pin
     GPIO_config_input_nopull(&DDRC, SW_SERVO);
     
     // Configure LED pins
@@ -175,11 +175,12 @@ int main(void)
 }
 
 /* Interrupt service routines ----------------------------------------*/
+
 ISR(INT0_vect)
 {
-    // String for converting numbers
+    // String for water level status
     static char lcd_str[16];
-    // String for smiley
+    // String for smiley :^)
     static char lcd_smiley[8];
     // State counter
     static uint8_t i = 1;
@@ -201,7 +202,7 @@ ISR(INT0_vect)
         if (volume > 99) {
             if (distance < max_level) {
                 strcpy(lcd_str, "OVERFLOW");
-                strcpy(lcd_smiley, ":^(");
+                strcpy(lcd_smiley, ":^O");
             }
             else {
                 strcpy(lcd_str, "FULL    ");
@@ -240,7 +241,7 @@ ISR(INT0_vect)
         }
         else if (volume > 0) {
             itoa(volume, lcd_str, 10);
-            strcpy(lcd_smiley, ":^)");
+            strcpy(lcd_smiley, ":^I");
         
             lcd_gotoxy(5, 0);
             lcd_puts("%      ");
@@ -321,6 +322,8 @@ ISR(TIMER2_OVF_vect)
 {
     static uint8_t number_of_overflows = 0;
 
+    ++number_of_overflows;
+
     // Toggle LED(s) every ~500ms
     if (number_of_overflows >= 31) {
         if (valveIsOpen)
@@ -330,7 +333,5 @@ ISR(TIMER2_OVF_vect)
 
         number_of_overflows = 0;
     }
-
-    ++number_of_overflows;
 }
  

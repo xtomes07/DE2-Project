@@ -42,17 +42,18 @@ uint16_t water_height = 400;
 uint16_t air_gap = 20;
 // Total height of the system
 uint16_t total_height;
-
-// Measured distance in cm
-uint16_t distance;
 // Max water level before valve opens
 uint16_t max_level;
 
+// Measured distance in cm
+uint16_t distance;
 // Water tank fill level
 uint8_t volume = 0;
+
 // Booleans for electromechanics
 uint8_t valveIsOpen = 0;
 uint8_t pumpIsOn = 0;
+
 // Custom character number
 uint8_t char_num = 0;
 
@@ -65,10 +66,10 @@ uint8_t char_num = 0;
  **********************************************************************/
 void configure_pump()
 {
-    // Configure Pump Control pin
+    // Configure Pump switch pin
     GPIO_config_input_nopull(&DDRC, SW_PUMP);
 
-    // Configure Pump Relay pin
+    // Configure relay control signal pin
     GPIO_config_output(&DDRC, RELAY);
     GPIO_write_low(&PORTC, RELAY);
 }
@@ -80,11 +81,11 @@ void configure_pump()
  **********************************************************************/
 void configure_servo()
 {
-    // Configure Servo pin
+    // Configure Servo control signal pin
     GPIO_config_output(&DDRB, SERVO);
     GPIO_write_low(&PORTB, SERVO);
 
-    // Configure Servo Control pin
+    // Configure Servo switch pin
     GPIO_config_input_nopull(&DDRC, SW_SERVO);
 }
 /**********************************************************************
@@ -95,7 +96,6 @@ void configure_servo()
  **********************************************************************/
 void configure_leds()
 {
-    // Configure LED pins
     GPIO_config_output(&DDRB, LED_G);
     GPIO_write_low(&PORTB, LED_G);
     GPIO_config_output(&DDRB, LED_R);
@@ -122,7 +122,6 @@ void configure_leds()
  **********************************************************************/
 void set_initial_lcd_values()
 {
-    // Put strings on LCD display
     lcd_show(0, 0, "LVL:");
     lcd_showc(15, 0, char_num);
     lcd_show(0, 1, "PMP:");
@@ -143,9 +142,6 @@ void set_timer_overflows()
 
     // Set overflow flag for LED timer
     TIM2_overflow_interrupt_enable();
-
-    // Enables interrupts by setting the global interrupt mask
-    sei();
 }
 /**********************************************************************
  * Function: Initializes configurations
@@ -158,15 +154,16 @@ void init_configurations()
 {
     // Set max water level halfway between sensor and max water level
     max_level = air_gap / 2;
+    // Height of the complete system
     total_height = water_height + air_gap;
 
-    // Initialize ultrasonic sensor
+    // Initialize ultrasonic sensor pins
     ultrasonic_init(&DDRD, TRIG, &DDRD, ECHO);
-
+    // Initialize water pump pins
     configure_pump();
-
+    // Initialize water valve pins
     configure_servo();
-
+    // Initialize LED pins
     configure_leds();
 }
 /**********************************************************************
@@ -284,33 +281,12 @@ void resolve_full_water_level_or_overflow(char *lcd_str, char *lcd_smiley)
     // Signal full level on LED if valve is not open
     if (!pumpIsOn)
         GPIO_write_high(&PORTB, LED_G);
-
     if (!valveIsOpen)
         GPIO_write_low(&PORTB, LED_R);
 }
 /**********************************************************************
- * Function: Resolves custom character selection based on water levels
- * Purpose:  Custom characters show user how filled the tank is.
- *           Appropriate char number is chosen based on water level.
- * Input:    none
- * Returns:  none
- **********************************************************************/
-void resolve_char_num()
-{
-    if (volume > 80)
-        char_num = 5;
-    else if (volume > 60)
-        char_num = 4;
-    else if (volume > 40)
-        char_num = 3;
-    else if (volume > 20)
-        char_num = 2;
-    else
-        char_num = 1;
-}
-/**********************************************************************
  * Function: Resolves LCD values for filled tank in norm
- * Purpose:  If tank is filled with atleast 10% and less than 100%,
+ * Purpose:  If tank is filled with at least 10% and less than 100%,
  *           function shows happy smiley and prepares LCD values.
  * Input:    lcd_str    - string for water level status
  *           lcd_smiley - string for smiley :^)
@@ -323,11 +299,19 @@ void resolve_two_digit_water_level(char *lcd_str, char *lcd_smiley)
 
     lcd_show(6, 0, "%     ");
 
-    resolve_char_num();
+    if (volume > 80)
+        char_num = 5;
+    else if (volume > 60)
+        char_num = 4;
+    else if (volume > 40)
+        char_num = 3;
+    else if (volume > 20)
+        char_num = 2;
+    else
+        char_num = 1;
 
     if (!pumpIsOn)
         GPIO_write_low(&PORTB, LED_G);
-
     if (!valveIsOpen)
         GPIO_write_low(&PORTB, LED_R);
 }
@@ -350,7 +334,6 @@ void resolve_single_digit_water_level(char *lcd_str, char *lcd_smiley)
 
     if (!pumpIsOn)
         GPIO_write_low(&PORTB, LED_G);
-
     if (!valveIsOpen)
         GPIO_write_low(&PORTB, LED_R);
 }
@@ -371,7 +354,6 @@ void resolve_empty(char *lcd_str, char *lcd_smiley)
 
     if (!pumpIsOn)
         GPIO_write_low(&PORTB, LED_G);
-
     if (!valveIsOpen)
         GPIO_write_high(&PORTB, LED_R);
 }
@@ -395,15 +377,13 @@ void resolve_tank_fill_percentage(char *lcd_str, char *lcd_smiley)
 }
 /**********************************************************************
  * Function: Checks water overflow or if valve is turned on
- * Purpose:  Automated proccess of opening and closing valve
- *           based on water level.
+ * Purpose:  Automated process of opening and closing valve based on 
+ *           water level.
  * Input:    none
  * Returns:  none
  **********************************************************************/
 void check_valve_on_or_water_overflow()
 {
-    // Check for water excess (level is greater than max allowed value)
-    // or if valve switch is on
     if (distance < max_level || GPIO_read(&PINC, SW_SERVO))
     {
         lcd_show(13, 1, "OPN");
@@ -417,7 +397,7 @@ void check_valve_on_or_water_overflow()
     }
 }
 /**********************************************************************
- * Function: Checks if pump is on and water level is ok 
+ * Function: Checks if pump is on and water level is OK 
  * Purpose:  Based on water level turns pump on or off.
  * Input:    none
  * Returns:  none
@@ -473,6 +453,9 @@ int main(void)
 
     set_timer_overflows();
 
+    // Enables interrupts by setting the global interrupt mask
+    sei();
+    
     while (1)
     {
     }
@@ -496,7 +479,6 @@ ISR(INT0_vect)
 
     if (echoIsHigh)
     {
-        // Begin measuring echo signal
         ultrasonic_start_measuring();
 
         echoIsHigh = 0;

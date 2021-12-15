@@ -202,16 +202,19 @@ V části Main probíha počáteční nastavení čerpadla, servomotoru, LCD dis
 ![main](Images/main.png)
 
 #### External Interrupt 0
-V  této časti probíhá měření a následné vyhodnocování namřených dat jako je přepočet vzdálenosti na množství vody v nádrži, následný přepočet na procenta, automatické zastavení 
+V  této části probíhá měření a následné vyhodnocování namřených dat jako je přepočet vzdálenosti na množství vody v nádrži, následný přepočet na procenta, automatické zastavení 
 pumpy a zapnutí serva v připade pretečení a vypsání na LDC displej.
+
 ![int0](Images/int0.png)
 
 #### Timer/Counter0
 V  této části probíhá každých 40 ms vyslaní Trigger impulsu do senzoru.
+
 ![timer0](Images/timer0.png)
 
 #### Timer/Counter2
 V  této časti probíhá ovladání pomocných signalizačních LED diod každých 500 ms.
+
 ![timer2](Images/ledky.png)
 
 #### Další možná rozšíření:

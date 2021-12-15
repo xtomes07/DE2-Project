@@ -44,7 +44,7 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 
 [Datasheet](https://github.com/xtomes07/DE2-Project/blob/main/Docs/ATmega48A-PA-88A-PA-168A-PA-328-P-DS.pdf)
 
-![arduino](Images/arduino_uno_pinout.PNG)
+![arduino](Images/arduino_uno_pinout.png)
 
 ### Ultrazvukový senzor HC-SR04
 
@@ -69,7 +69,7 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 ![servo](Images/servo.jpg)
 
 ### Scháma zapojení obvodu:
-![zapojení obvodu simulace](Images/SchemaZapojeni.PNG)
+![zapojení obvodu simulace](Images/SchemaZapojeni.png)
 
 K arduinu uno je přes piny D4 až D7, B1 a B0 připojen LCD displej Hd44780, na kterém se zobrazují aktuální informace o dění a stavu hladiny. Přes piny B6 a B7 jsou připojeny pomocné signalizační LED diody. Samotný senzor HC-SR04 je připojen přes piny D0 a D2. Na pinu D0 je připojen Trig a na D2 je připojen pin Echo. Spínač pro manuální ovládání servo-motoru, který ovláda ventil, je na vstupním pinu C2 a spínač pro manuální ovládání čerpadla je na pinu C1. Ovládací signál pro servo-motor jde u výstupního pinu B4 a relé pro spínání čerpadla je připojeno na výstupní pin C0.
 <a name="libs"></a>

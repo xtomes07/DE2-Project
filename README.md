@@ -121,8 +121,67 @@ uint16_t customChar[] = {
 
 Tato knihovna byla vytvořena pro ultrazvukový senzor HC-SR04. Obsahuje funkce jako `ultrasonic_init` , která konfiguruje piny a Timer/Counter1 pro použití s HC-SR04. `ultrasonic_trigger` pro vyslání "TRIG" 10 μs impulzu  , `ultrasonic_start_measuring` a `ultrasonic_stop_measuring` pro zaznamenání doby, za jak dlouho se impulz vrátím `ultrasonic_get_distance` pro návratovou hodnotu vzdálenosti.
 
+Ukázka kódu z funkce `ultrasonic_init`
 ```c          
+void ultrasonic_init(volatile uint8_t *trig_reg, uint8_t trig_pin, volatile uint8_t *echo_reg, uint8_t echo_pin)
+{
+    signal_pin = echo_pin;
 
+    // Configure trigger pin Data Direction Register as output
+    *trig_reg |= (1<<trig_pin);
+    // Move pointer to address of Port Register
+    ++trig_reg;
+    // Drive port pin low
+    *trig_reg &= ~(1<<trig_pin);
+
+    // Configure echo signal pin Data Direction Register as input
+    *echo_reg &= ~(1<<signal_pin);
+    // Move pointer to address of Port Register
+    ++echo_reg;
+    // Enable pull-up resistor
+    *echo_reg |= (1<<signal_pin);
+    // Move pointer back to address of Data Direction Register
+    --echo_reg;
+    
+    if (*echo_reg == DDRB) {
+        // Any change on any enabled PCINT[7:0] pin will cause an interrupt
+        PCICR |= (1<<PCIE0);
+        // Enable pin change interrupt on the corresponding I/O pin
+        PCMSK0 |= (1<<signal_pin);
+    }
+    if (*echo_reg == DDRC) {
+        PCICR |= (1<<PCIE1);
+        PCMSK1 |= (1<<signal_pin);
+    }
+    if (*echo_reg == DDRD) {
+        if (signal_pin == PIN_INT1) {
+            // Rising edge on INT1 generates an interrupt request
+            EICRA |= (1<<ISC11) | (1<<ISC10);
+            // Enable External Interrupt Requests
+            EIMSK |= (1<<INT1);
+        }
+        else if (signal_pin == PIN_INT0) {
+            // Rising edge on INT0 generates an interrupt request
+            EICRA |= (1<<ISC01) | (1<<ISC00);
+            // Enable External Interrupt Requests
+            EIMSK |= (1<<INT0);
+        }
+        else {
+            PCICR |= (1<<PCIE2);
+            PCMSK2 |= (1<<signal_pin);
+        }
+    }
+
+    // 340 m/s sound wave propagates by 1 cm in ~58,8235 us
+    // Empirical measurement suggests that 930 clocks of TIM1
+    // with prescaler N=1 takes almost the same amount of time
+    // Set max TIM1 value to this clock number
+    OCR1A = 930;
+    // Enable Timer/Counter1 Output Compare A Match interrupt
+    TIMSK1 |= (1<<OCIE1A);
+    // Enable Timer/Counter1 Clear Timer on Compare Match mode
+    TCCR1B |= (1<<WGM12);
+}
 ```
 
 
@@ -131,7 +190,10 @@ Tato knihovna byla vytvořena pro ultrazvukový senzor HC-SR04. Obsahuje funkce 
 
 ## Main application
 
-Write your text here.
+![main](Images/simulacezapojeni.PNG)
+
+Hlavním účelem této aplikace je automatizace provozu regulace hladiny vody ve vodní nádrži. Hladina vody je snímána pomocí ultrazvukového senzoru, který je připojen k desce Arduino Uno. LCD displej zobrazuje hladinu vody v nádrži pomocí procent a vlastních znaků v prvním řádku displeje. Při určitých stavech se místo procent zobrazují textové informace jako EMPTY, FULL a OVERFLOW. Ve druhém řádku jsou vypsány informace o hardwaru. Jestli je vypouštěcí ventil (VLV) otevřen nebo zavřen a také jestli čerpadlo (PMP) čerpá vodu do nádrže nebo je vypnuto. Aplikace hlída vodní hladinu, při hrozbě přetečení nádrže, dojde k otevření výpustného ventilu pomocí servo-motoru, který přebytečnou vodu odpustí. Ventil lze ovládat i manuálně pomocí přepínače. Čerpadlo je ovládáno manuálně pomocí přepínače a plní nádrž vodou. V případě, že by hrozilo přečerpání a následné přetečení nádrže, aplikace to vyhodnotí a čerpadlo vypne i v případě seplého spínače pro manuální ovládání čerpadla. K arduinu jsou připojeny pomocné indikační LED diody. Červená dioda svítí, když je nádrž plná a bliká když je v provozu čerpadlo. Modrá dioda Svítí v případě prázdné nádrže a bliká, když je otevřený vypouštěcí ventil.
+
 
 <a name="video"></a>
 

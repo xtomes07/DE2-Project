@@ -25,7 +25,7 @@ https://github.com/xtomes07/DE2-Project
 
 ## Project objectives
 
-Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovládání nádrže s kontrolou vodní hladiny. Pro snímání vodní hladiny byl vybrán ultrazvukový senzor HC-SR04, díky kterému je možné přesně zjistit výšku hladiny vody v nádrži na základě doby, za kterou ultrazvukový signál dorazí k vodní hladině a zpět k senzoru. Stav hladainy se následně bude zobrazovat na dipleji Hd44780 v kolonce LVL a pomocí animace stavu hladiny nádrže. Jako příslušenství k nádrži byl zvolen ventil pro vypouštění vody samospádem a čerpadlo pro napouštění. K ventilu bude připojen servo motor, který ventil ovládá. Ventil bude pracovat automaticky na základě vodní hladiny, když byl hrozilo přetečení nádrže, ventil se na základě povelu z arduina otevře a odpustí vodu. Lze ho také ovládat manuálně pomocí tlačítka. Čerpadlo bude ovládano pouze ručně přes tlačítko, které bude dávat povel arduinu a arduino na základě programu spíná relé, které spíná čerpadlo. Program zároveň bude vyhodnocovat stav hladiny a v případě, že by při čerpání vody do nádrže hrozilo přetečení nádrže, tak čerpadlo automaticky vypne. Stavy On/Off čepadla (PMP )a Open/Close ventilu (VLV) budou zobrazovány také na displeji Hd44780. K arduinu budou také připojeny dvě pomocné signalizační led diody. Zelená dioda bude svítit, když je nádrž plná vody a blikat když bude čerpadlo čerpat vodu do nádrže. Červená led dioda bude svítit, když je nádrž prázdná a svítit, když odpouštěcí ventil otevřený.
+Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovládání nádrže s kontrolou výšky vodní hladiny. Pro snímání vodní hladiny byl vybrán ultrazvukový senzor HC-SR04, díky kterému je možné přesně zjistit výšku hladiny vody v nádrži na základě doby, za kterou ultrazvukový signál dorazí k vodní hladině a zpět k senzoru. Stav hladiny se následně bude zobrazovat na dipleji Hd44780 v kolonce LVL a pomocí animace stavu hladiny nádrže. Jako příslušenství k nádrži byl zvolen ventil pro vypouštění vody samospádem a čerpadlo pro napouštění. K ventilu bude připojen servo motor, který ventil ovládá. Ventil bude pracovat automaticky na základě vodní hladiny, když byl hrozilo přetečení nádrže, ventil se na základě povelu z arduina otevře a odpustí vodu. Lze ho také ovládat manuálně pomocí tlačítka. Čerpadlo bude ovládano pouze ručně přes tlačítko, které bude dávat povel arduinu a arduino na základě programu bude spínat relé, které spíná čerpadlo. Program zároveň bude vyhodnocovat stav hladiny a v případě, že by při čerpání vody do nádrže hrozilo přetečení nádrže, tak čerpadlo automaticky vypne. Stavy On/Off čepadla (PMP )a Open/Close ventilu (VLV) budou zobrazovány také na displeji Hd44780. K arduinu budou také připojeny dvě pomocné signalizační led diody. Zelená dioda bude svítit, když je nádrž plná vody a blikat když bude čerpadlo čerpat vodu do nádrže. Červená led dioda bude svítit, když je nádrž prázdná a svítit, když odpouštěcí ventil otevřený.
 
 <a name="hardware"></a>
 
@@ -66,7 +66,7 @@ HD44780 je alfanumerický LCD displej s řadičem. Má 2 řádky s 16 znaky na �
 
 ![rele](Images/rele.jpg)
 
-Parametry použitého relé závisí na připojeném čerpadle. V tomto případě bylo použito relé 30 VDC 10A, ,které je v klidovém stavu rozpojeno a dostačuje pro ovládání malého 12 V DC čerpadla.
+Parametry použitého relé závisí na připojeném čerpadle. V tomto případě bylo použito relé 30 VDC 10A, které je v klidovém stavu rozpojeno a dostačuje pro ovládání malého 12 V DC čerpadla.
 
 ### Servo motor pro ovládání ventilu
 
@@ -74,10 +74,10 @@ Parametry použitého relé závisí na připojeném čerpadle. V tomto případ
 
 ![servo](Images/servo.jpg)
 
-Servo motor SG90 s nylonovými převody se může otáčet o 360° a funguje podobně jako motorek s převodovkou, kde můžete jednoduše měnit rychlost a směr otáčení. Výhodou je, že pro ovládání nepotřebujete speciální motor driver, ale postačí jen PWM výstup přímo z řídící Arduino desky.
+Servo motor SG90 s nylonovými převody se může otáčet o 360° a funguje podobně jako motorek s převodovkou, kde můžeme jednoduše měnit rychlost a směr otáčení. Výhodou je, že pro ovládání nepotřebujete speciální motor driver, ale postačí jen PWM výstup přímo z Arduina.
 
 
-### Scháma zapojení obvodu:
+### Schéma zapojení obvodu:
 
 ![zapojení obvodu simulace](Images/SchemaZapojeni.png)
 
@@ -87,7 +87,7 @@ K arduinu uno je přes piny D4 až D7, B1 a B0 připojen LCD displej Hd44780, na
 
 ## Libraries description
 
-Projek se skládá z několika knihoven, které jsou napsány v jazyce C. Pro ovladaní displeje byly pouzity knihovny LCD.C, LCD.H a LCD_DEFINITION.H. Pro vstupní a výstupní obvody knihovny GPIO.C a GPIO.H. Pro ovladání časovače byla použita hnikovna TIMER.H. Všechny tyto knihovny byly vytvořeny v hodinách DE2. Dále byla vytvořena knihovna vlastních znaků SYMBOLS.H pro pomocné symboly stavu hladiny v nádrži. Pro řízení senzoru a následné čtení naměřených dat, byly vytvořeny vlastní knihovny ULTRASONIC.C a ULTRASONIC.H.
+Projek se skládá z několika knihoven, které jsou napsány v jazyce C. Pro ovladaní displeje byly pouzity knihovny LCD.C, LCD.H a LCD_DEFINITION.H. Pro vstupní a výstupní obvody knihovny GPIO.C a GPIO.H. Pro ovladání časovače byla použita knikovna TIMER.H. Všechny tyto knihovny byly vytvořeny v hodinách DE2. Dále byla vytvořena knihovna vlastních znaků SYMBOLS.H pro pomocné symboly stavu hladiny v nádrži. Pro řízení senzoru a následné čtení naměřených dat, byly vytvořeny vlastní knihovny ULTRASONIC.C a ULTRASONIC.H.
 
 [GPIO.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.c)<br />
 [GPIO.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.h)<br />
@@ -119,7 +119,7 @@ uint16_t customChar[] = {
 
 #### `ultrasonic.c`
 
-Tato knihovna byla vytvořena pro ultrazvukový senzor HC-SR04. Obsahuje funkce jako `ultrasonic_init` , která konfiguruje piny a Timer/Counter1 pro použití s HC-SR04. `ultrasonic_trigger` pro vyslání "TRIG" 10 μs impulzu  , `ultrasonic_start_measuring` a `ultrasonic_stop_measuring` pro zaznamenání doby, za jak dlouho se impulz vrátím `ultrasonic_get_distance` pro návratovou hodnotu vzdálenosti.
+Tato knihovna byla vytvořena pro ultrazvukový senzor HC-SR04. Obsahuje funkce jako `ultrasonic_init` , která konfiguruje piny a Timer/Counter1 pro použití s HC-SR04. `ultrasonic_trigger` pro vyslání "TRIG" 10 μs impulsu, `ultrasonic_start_measuring` a `ultrasonic_stop_measuring` pro zaznamenání doby, za jak dlouho se impuls vrátí, `ultrasonic_get_distance` pro návratovou hodnotu vzdálenosti.
 
 Ukázka kódu z funkce `ultrasonic_init`
 ```c          
@@ -197,8 +197,7 @@ Hlavním účelem této aplikace je automatizace provozu regulace hladiny vody v
 ### Vývojové diagramy
 
 #### MAIN
-V části Main probíha počáteční nastavení pumpy, serva, LCD displayu a timer overflowov. Zároveň prvotní zobrazení LCD hodnot a nekonečná smyčka, která postupem času vyvoláva
-naše inicializované timer overflowy.
+V části Main probíha počáteční nastavení čerpadla, servomotoru, LCD displeje a timer overflowov. Zároveň prvotní zobrazení LCD hodnot a nekonečná smyčka, která postupem času vyvolává naše inicializované timer overflowy.
 
 ![main](Images/main.png)
 

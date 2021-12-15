@@ -255,7 +255,7 @@ void show_final_lcd_values(const char *lcd_str, const char *lcd_smiley, const ui
     // Put smiley on LCD
     lcd_show(12, 0, lcd_smiley);
     // Put cute tank fill level icon on LCD
-    lcd_show(15, 0, char_num);
+    lcd_showc(15, 0, char_num);
 }
 /**********************************************************************
  * Function: Resolves tank overflow and fill status

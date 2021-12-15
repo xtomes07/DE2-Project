@@ -52,15 +52,21 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 
 ![hcsr](Images/hcsr.png)
 
+HC-SR04 je ultrazvukový snímač vzdálenosti od 2 cm do 400 cm. Dosahuje přesnosti měření až +- 3 mm. Princi fungování spočí v tom, že pomocí ardduina aktivujeme signál "TRIG" na měřiči vzdálenosti a to na dobu minimálně 10 μs. Následně vyšle modul ultrazvukový signál a čeká na jeho odražení od překážky a zpětné zachycení měřičem. Mezi tím se aktivuje signál "ECHO", jehož délka je pak úměrná vzdálenosti překážky. Signál "ECHO" se deaktivuje po zachycení odraženého signálu měřičem vzdálenosti.
+
 ### LCD displej Hd44780
 
 [Datasheet](https://github.com/xtomes07/DE2-Project/blob/main/Docs/HD44780.pdf)
 
 ![lcd](Images/hd44780.jpg)
 
+HD44780 je alfanumerický LCD displej s řadičem. Má 2 řádky s 16 znaky na řádek.
 
 ### Relé
+
 ![rele](Images/rele.jpg)
+
+Parametry použitého relé závisí na připojeném čerpadle. V tomto případě bylo použito relé 30 VDC 10A, ,které je v klidovém stavu rozpojeno a dostačuje pro ovládání malého 12 V DC čerpadla.
 
 ### Servo motor pro ovládání ventilu
 
@@ -68,10 +74,13 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 
 ![servo](Images/servo.jpg)
 
+Servo motor SG90 s nylonovými převody se může otáčet o 360° a funguje podobně jako motorek s převodovkou, kde můžete jednoduše měnit rychlost a směr otáčení. Výhodou je, že pro ovládání nepotřebujete speciální motor driver, ale postačí jen PWM výstup přímo z řídící Arduino desky.
+
 ### Scháma zapojení obvodu:
+
 ![zapojení obvodu simulace](Images/SchemaZapojeni.png)
 
-K arduinu uno je přes piny D4 až D7, B1 a B0 připojen LCD displej Hd44780, na kterém se zobrazují aktuální informace o dění a stavu hladiny. Přes piny B6 a B7 jsou připojeny pomocné signalizační LED diody. Samotný senzor HC-SR04 je připojen přes piny D0 a D2. Na pinu D0 je připojen Trig a na D2 je připojen pin Echo. Spínač pro manuální ovládání servo-motoru, který ovláda ventil, je na vstupním pinu C2 a spínač pro manuální ovládání čerpadla je na pinu C1. Ovládací signál pro servo-motor jde u výstupního pinu B4 a relé pro spínání čerpadla je připojeno na výstupní pin C0.
+K arduinu uno je přes piny D4 až D7, B1 a B0 připojen LCD displej Hd44780, na kterém se zobrazují aktuální informace o dění hardwaru a stavu hladiny vody v nádrži. Přes výstupní piny B6 a B7 jsou připojeny pomocné signalizační LED diody. Samotný ultrazvukový senzor HC-SR04 je připojen přes piny D0 a D2. Na pinu D0 je připojen Trig a na D2 je připojen pin Echo. Spínač pro manuální ovládání servo-motoru, který ovláda ventil, je na vstupním pinu C2 a spínač pro manuální ovládání čerpadla je na vstupním pinu C1. Ovládací signál pro servo-motor jde z výstupního pinu B4 a relé pro spínání čerpadla je připojeno na výstupní pin C0.
 <a name="libs"></a>
 
 ## Libraries description

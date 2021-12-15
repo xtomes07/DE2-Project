@@ -198,6 +198,7 @@ Hlavním účelem této aplikace je automatizace provozu regulace hladiny vody v
 
 #### MAIN
 V části Main probíha počáteční nastavení aplikace.
+
 ![main](Images/main.png)
 
 #### External Interrupt 0

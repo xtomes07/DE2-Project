@@ -198,19 +198,19 @@ Hlavním účelem této aplikace je automatizace provozu regulace hladiny vody v
 
 #### MAIN
 V části Main probíha počáteční nastavení aplikace.
-![main](Images/main.PNG)
+![main](Images/main.png)
 
 #### External Interrupt 0
 V  této časti probíhá měření a následné vyhodnocování namřených dat jako je přepočet vzdálenosti na množství vody v nádrži, následný přepočet na procenta a vypsání na LDC displej.
-![int0](Images/int0.PNG)
+![int0](Images/int0.png)
 
 #### Timer/Counter0
 V  této části probíhá každých 40 ms vyslaní Trigger impulsu do senzoru.
-![timer0](Images/timer0.PNG)
+![timer0](Images/timer0.png)
 
 #### Timer/Counter2
 V  této časti probíhá ovladání pomocných signalizačních LED diod každých 500 ms.
-![timer2](Images/ledky.PNG)
+![timer2](Images/ledky.png)
 
 #### Další možná rozšíření:
  Další rozšíření by mohlo být menu pro uživatelsky přívětivější nastavení velikosti nádrže a maximální výšky hladiny vody v nádrži. Jako další by bylo možné připojit další periferie jako je například další čerpadlo pro čerpání vody z nádrže do zavlažovacího systému a čidlo vlhkosti pro závlahu. Pomocí komunikace přes WIFI nebo Bluetooth modul by bylo možné vytvořit mobilní aplikace pro ovladání a výpis informací o stavu nádrže.

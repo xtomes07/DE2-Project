@@ -326,14 +326,10 @@ void resolve_two_digit_water_level(char *lcd_str, char *lcd_smiley)
     resolve_char_num();
 
     if (!pumpIsOn)
-    {
         GPIO_write_low(&PORTB, LED_G);
-    }
 
     if (!valveIsOpen)
-    {
         GPIO_write_low(&PORTB, LED_R);
-    }
 }
 /**********************************************************************
  * Function: Resolves LCD values for almost empty tank
@@ -353,14 +349,10 @@ void resolve_single_digit_water_level(char *lcd_str, char *lcd_smiley)
     char_num = 1;
 
     if (!pumpIsOn)
-    {
         GPIO_write_low(&PORTB, LED_G);
-    }
 
     if (!valveIsOpen)
-    {
         GPIO_write_low(&PORTB, LED_R);
-    }
 }
 /**********************************************************************
  * Function: Resolves LCD values for empty water tank 
@@ -378,14 +370,10 @@ void resolve_empty(char *lcd_str, char *lcd_smiley)
     char_num = 0;
 
     if (!pumpIsOn)
-    {
         GPIO_write_low(&PORTB, LED_G);
-    }
 
     if (!valveIsOpen)
-    {
         GPIO_write_high(&PORTB, LED_R);
-    }
 }
 /**********************************************************************
  * Function: Resolves LCD values based on tank water percentage 
@@ -434,7 +422,7 @@ void check_valve_on_or_water_overflow()
  * Input:    none
  * Returns:  none
  **********************************************************************/
-void check_pump_on_and_water_level_ok()
+void check_pump_on_or_water_level_ok()
 {
     if (distance > air_gap && GPIO_read(&PINC, SW_PUMP)) 
     {
@@ -521,9 +509,9 @@ ISR(INT0_vect)
 
         check_valve_on_or_water_overflow();
 
-        check_pump_on_and_water_level_ok();
+        check_pump_on_or_water_level_ok();
 
-        show_final_lcd_values(lcd_str, char_num, lcd_smiley);
+        show_final_lcd_values(lcd_str, lcd_smiley, char_num);
 
         echoIsHigh = 1;
     }

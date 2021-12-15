@@ -89,24 +89,15 @@ K arduinu uno je přes piny D4 až D7, B1 a B0 připojen LCD displej Hd44780, na
 
 Projek se skládá z několika knihoven, které jsou napsány v jazyce C. Pro ovladaní displeje byly pouzity knihovny LCD.C, LCD.H a LCD_DEFINITION.H. Pro vstupní a výstupní obvody knihovny GPIO.C a GPIO.H. Pro ovladání časovače byla použita hnikovna TIMER.H. Všechny tyto knihovny byly vytvořeny v hodinách DE2. Dále byla vytvořena knihovna vlastních znaků SYMBOLS.H pro pomocné symboly stavu hladiny v nádrži. Pro řízení senzoru a následné čtení naměřených dat, byly vytvořeny vlastní knihovny ULTRASONIC.C a ULTRASONIC.H.
 
-[GPIO.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.c)
-
-[GPIO.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.h)
-
-[LCD.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd.c)
-
-[LCD.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd.h)
-
-[LCD_DEFINITIONS.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd_definitions.h)
-
-[TIMER.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/timer.h)
-
-[SYMBOLS.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/symbols.h)
-
-[ULTRASONIC.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/ultrasonic.h)
-
-[ULTRASONIC.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/ultrasonic.h)
-
+[GPIO.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.c)<br />
+[GPIO.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.h)<br />
+[LCD.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd.c)<br />
+[LCD.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd.h)<br />
+[LCD_DEFINITIONS.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/lcd_definitions.h)<br />
+[TIMER.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/timer.h)<br />
+[SYMBOLS.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/symbols.h)<br />
+[ULTRASONIC.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/ultrasonic.h)<br />
+[ULTRASONIC.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/ultrasonic.h)<br />
 
 
 #### `symbols.h`
@@ -126,7 +117,7 @@ uint16_t customChar[] = {
     0B11111,
 ```
 
-### `ultrasonic.c`
+#### `ultrasonic.c`
 
 Tato knihovna byla vytvořena pro ultrazvukový senzor HC-SR04. Obsahuje funkce jako `ultrasonic_init` , která konfiguruje piny a Timer/Counter1 pro použití s HC-SR04. `ultrasonic_trigger` pro vyslání "TRIG" 10 μs impulzu  , `ultrasonic_start_measuring` a `ultrasonic_stop_measuring` pro zaznamenání doby, za jak dlouho se impulz vrátím `ultrasonic_get_distance` pro návratovou hodnotu vzdálenosti.
 

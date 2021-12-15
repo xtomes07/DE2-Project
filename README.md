@@ -52,7 +52,7 @@ Cílem projektu je pomocí arduina a programovacího jazyka C realizovat ovlád�
 
 ![hcsr](Images/hcsr.png)
 
-HC-SR04 je ultrazvukový snímač vzdálenosti od 2 cm do 400 cm. Dosahuje přesnosti měření až +- 3 mm. Princi fungování spočí v tom, že pomocí ardduina aktivujeme signál "TRIG" na měřiči vzdálenosti a to na dobu minimálně 10 μs. Následně vyšle modul ultrazvukový signál a čeká na jeho odražení od překážky a zpětné zachycení měřičem. Mezi tím se aktivuje signál "ECHO", jehož délka je pak úměrná vzdálenosti překážky. Signál "ECHO" se deaktivuje po zachycení odraženého signálu měřičem vzdálenosti.
+HC-SR04 je ultrazvukový snímač vzdálenosti od 2 cm do 400 cm. Dosahuje přesnosti měření až +- 3 mm. Princi fungování spočí v tom, že pomocí arduina aktivujeme signál "TRIG" na měřiči vzdálenosti a to na dobu minimálně 10 μs. Následně vyšle modul ultrazvukový signál a čeká na jeho odražení od překážky a zpětné zachycení měřičem. Mezi tím se aktivuje signál "ECHO", jehož délka je pak úměrná vzdálenosti od překážky. Signál "ECHO" se deaktivuje po zachycení odraženého signálu měřičem vzdálenosti.
 
 ### LCD displej Hd44780
 
@@ -76,16 +76,18 @@ Parametry použitého relé závisí na připojeném čerpadle. V tomto případ
 
 Servo motor SG90 s nylonovými převody se může otáčet o 360° a funguje podobně jako motorek s převodovkou, kde můžete jednoduše měnit rychlost a směr otáčení. Výhodou je, že pro ovládání nepotřebujete speciální motor driver, ale postačí jen PWM výstup přímo z řídící Arduino desky.
 
+
 ### Scháma zapojení obvodu:
 
 ![zapojení obvodu simulace](Images/SchemaZapojeni.png)
 
 K arduinu uno je přes piny D4 až D7, B1 a B0 připojen LCD displej Hd44780, na kterém se zobrazují aktuální informace o dění hardwaru a stavu hladiny vody v nádrži. Přes výstupní piny B6 a B7 jsou připojeny pomocné signalizační LED diody. Samotný ultrazvukový senzor HC-SR04 je připojen přes piny D0 a D2. Na pinu D0 je připojen Trig a na D2 je připojen pin Echo. Spínač pro manuální ovládání servo-motoru, který ovláda ventil, je na vstupním pinu C2 a spínač pro manuální ovládání čerpadla je na vstupním pinu C1. Ovládací signál pro servo-motor jde z výstupního pinu B4 a relé pro spínání čerpadla je připojeno na výstupní pin C0.
+
 <a name="libs"></a>
 
 ## Libraries description
 
-Projek se skládá z několika knihoven, které jsou napsány v jazyce C. Pro ovladaní displeje byly pouzity knihovny LCD.C, LCD.H a LCD_DEFINITION.H. Pro vstupní a výstupní obvody knihovny GPIO.C a GPIO.H. Pro ovladání časovače byla použita hnikovna TIMER.H. Všechny tyto knihovny byly vytvořeny v hodinách DE2. Dále byla vytvořena knihovna vlastních znaků SYMBOLS.H pro pomocné symboly stavu hladiny v nádrži. Pro řízení senzoru a následné čtení naměřených dat, byly vytvořeny knihovny ULTRASONIC.C a ULTRASONIC.H.
+Projek se skládá z několika knihoven, které jsou napsány v jazyce C. Pro ovladaní displeje byly pouzity knihovny LCD.C, LCD.H a LCD_DEFINITION.H. Pro vstupní a výstupní obvody knihovny GPIO.C a GPIO.H. Pro ovladání časovače byla použita hnikovna TIMER.H. Všechny tyto knihovny byly vytvořeny v hodinách DE2. Dále byla vytvořena knihovna vlastních znaků SYMBOLS.H pro pomocné symboly stavu hladiny v nádrži. Pro řízení senzoru a následné čtení naměřených dat, byly vytvořeny vlastní knihovny ULTRASONIC.C a ULTRASONIC.H.
 
 [GPIO.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/gpio.c)
 
@@ -104,6 +106,35 @@ Projek se skládá z několika knihoven, které jsou napsány v jazyce C. Pro ov
 [ULTRASONIC.H](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/ultrasonic.h)
 
 [ULTRASONIC.C](https://github.com/xtomes07/DE2-Project/blob/main/WaterTankController/WaterTankController/ultrasonic.h)
+
+
+
+#### `symbols.h`
+
+Knihovna obsahuje 6 vlastních symbolů pro úroveň hladiny vody v nádrži. Příklad jednoho symbolu z knihovny.
+
+```c          
+uint16_t customChar[] = {
+    // Tank is empty
+    0B10001,    
+    0B10001,
+    0B10001,
+    0B10001,
+    0B10001,
+    0B10001,
+    0B11111,
+    0B11111,
+```
+
+### `ultrasonic.c`
+
+Tato knihovna byla vytvořena pro ultrazvukový senzor HC-SR04. Obsahuje funkce jako `ultrasonic_init` , která konfiguruje piny a Timer/Counter1 pro použití s HC-SR04. `ultrasonic_trigger` pro vyslání "TRIG" 10 μs impulzu  , `ultrasonic_start_measuring` a `ultrasonic_stop_measuring` pro zaznamenání doby, za jak dlouho se impulz vrátím `ultrasonic_get_distance` pro návratovou hodnotu vzdálenosti.
+
+```c          
+
+```
+
+
 
 <a name="main"></a>
 

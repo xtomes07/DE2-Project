@@ -197,12 +197,14 @@ Hlavním účelem této aplikace je automatizace provozu regulace hladiny vody v
 ### Vývojové diagramy
 
 #### MAIN
-V části Main probíha počáteční nastavení aplikace.
+V části Main probíha počáteční nastavení pumpy, serva, LCD displayu a timer overflowov. Zároveň prvotní zobrazení LCD hodnot a nekonečná smyčka, která postupem času vyvoláva
+naše inicializované timer overflowy.
 
 ![main](Images/main.png)
 
 #### External Interrupt 0
-V  této časti probíhá měření a následné vyhodnocování namřených dat jako je přepočet vzdálenosti na množství vody v nádrži, následný přepočet na procenta a vypsání na LDC displej.
+V  této časti probíhá měření a následné vyhodnocování namřených dat jako je přepočet vzdálenosti na množství vody v nádrži, následný přepočet na procenta, automatické zastavení 
+pumpy a zapnutí serva v připade pretečení a vypsání na LDC displej.
 ![int0](Images/int0.png)
 
 #### Timer/Counter0

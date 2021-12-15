@@ -194,6 +194,24 @@ void ultrasonic_init(volatile uint8_t *trig_reg, uint8_t trig_pin, volatile uint
 
 Hlavním účelem této aplikace je automatizace provozu regulace hladiny vody ve vodní nádrži. Hladina vody je snímána pomocí ultrazvukového senzoru, který je připojen k desce Arduino Uno. LCD displej zobrazuje hladinu vody v nádrži pomocí procent a vlastních znaků v prvním řádku displeje. Při určitých stavech se místo procent zobrazují textové informace jako EMPTY, FULL a OVERFLOW. Ve druhém řádku jsou vypsány informace o hardwaru. Jestli je vypouštěcí ventil (VLV) otevřen nebo zavřen a také jestli čerpadlo (PMP) čerpá vodu do nádrže nebo je vypnuto. Aplikace hlída vodní hladinu, při hrozbě přetečení nádrže, dojde k otevření výpustného ventilu pomocí servo-motoru, který přebytečnou vodu odpustí. Ventil lze ovládat i manuálně pomocí přepínače. Čerpadlo je ovládáno manuálně pomocí přepínače a plní nádrž vodou. V případě, že by hrozilo přečerpání a následné přetečení nádrže, aplikace to vyhodnotí a čerpadlo vypne i v případě seplého spínače pro manuální ovládání čerpadla. K arduinu jsou připojeny pomocné indikační LED diody. Červená dioda svítí, když je nádrž plná a bliká když je v provozu čerpadlo. Modrá dioda svítí v případě prázdné nádrže a bliká, když je otevřený vypouštěcí ventil.
 
+### Vývojové diagramy
+
+#### MAIN
+V části Main probíha počáteční nastavení aplikace.
+![main](Images/main.PNG)
+
+#### External Interrupt 0
+V  této časti probíhá měření a následné vyhodnocování namřených dat jako je přepočet vzdálenosti na množství vody v nádrži, následný přepočet na procenta a vypsání na LDC displej.
+![int0](Images/int0.PNG)
+
+#### Timer/Counter0
+V  této části probíhá každých 40 ms vyslaní Trigger impulsu do senzoru.
+![timer0](Images/timer0.PNG)
+
+#### Timer/Counter2
+V  této časti probíhá ovladání pomocných signalizačních LED diod každých 500 ms.
+![timer2](Images/ledky.PNG)
+
 #### Další možná rozšíření:
  Další rozšíření by mohlo být menu pro uživatelsky přívětivější nastavení velikosti nádrže a maximální výšky hladiny vody v nádrži. Jako další by bylo možné připojit další periferie jako je například další čerpadlo pro čerpání vody z nádrže do zavlažovacího systému a čidlo vlhkosti pro závlahu. Pomocí komunikace přes WIFI nebo Bluetooth modul by bylo možné vytvořit mobilní aplikace pro ovladání a výpis informací o stavu nádrže.
 

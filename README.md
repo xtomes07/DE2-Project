@@ -223,7 +223,7 @@ V  této časti probíhá ovladání pomocných signalizačních LED diod každ�
 
 ## Video
 
-[video](https://www.youtube.com/watch?v=sDZL-BgPtco)
+[video](https://www.youtube.com/watch?v=FyWZg4yU_cU)
 
 <a name="references"></a>
 
